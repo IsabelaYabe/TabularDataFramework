@@ -14,7 +14,7 @@ public:
     Queue() = default;
     ~Queue() = default;
 
-    // Delete copy constructor and assignment operator
+
     Queue(const Queue& other) = delete;
     Queue& operator=(const Queue& other) = delete;
 
@@ -29,7 +29,7 @@ public:
     std::optional<T> dequeue() {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_condition.wait(lock, [this] { return !m_queue.empty(); });
-        if (m_queue.empty()) { // Double-check to handle spurious wake-ups
+        if (m_queue.empty()) { 
             return std::nullopt;
         }
         auto value = std::move(m_queue.front());
