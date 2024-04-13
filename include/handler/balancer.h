@@ -7,7 +7,7 @@
 #include <mutex>
 #include "math.h"
 #include "../DataFrame/DataFrame.h"
-#include "..DataFrame/RowCA.h"
+#include "../DataFrame/RowCA.h"
 #include "../queue/queue.hpp"
 
 using namespace std;

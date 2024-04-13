@@ -3,10 +3,10 @@
 #include <thread>
 #include <mutex>
 #include "math.h"
-#include "../include/handler/balancer.h"
-#include "../include/DataFrame/DataFrame.h"
-#include "../include/DataFrame/RowCA.h"
-#include "../include/queue/queue.hpp"
+#include "../../include/handler/balancer.h"
+#include "../../include/DataFrame/DataFrame.h"
+#include "../../include/DataFrame/RowCA.h"
+#include "../../include/queue/queue.hpp"
 
 using namespace std;
 
