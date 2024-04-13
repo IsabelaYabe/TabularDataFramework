@@ -3,6 +3,7 @@
 #include <queue>
 #include <thread>
 #include <mutex>
+#include "math.h"
 
 using namespace std;
 
@@ -14,13 +15,13 @@ class Row {
 class DataFrame {
 public:
     std::vector<Row> Rows; // Vetor de linhas
-    int dataframe_size = 0; // Tamanho do DataFrame em bytes
-    int row_size = 0; // Tamanho de uma linha do DataFrame em bytes
+    int numRows = 0; // Número de linhas
     
 
     // Adiciona uma linha ao DataFrame
     void addRow(const Row& newRow) {
         Rows.push_back(newRow);
+        numRows++;
     }
 
 };
@@ -33,8 +34,8 @@ class Handler {
 public:
     // Fila de DataFrames de entrada
     queue<DataFrame> dataframes_in;
-    // Fila de DataFrames de saída
-    queue<DataFrame> dataframes_out;
+    // Vetor de queues de saída
+    vector<queue<DataFrame>> dataframes_out;
     // Método virtual para processar a fila de DataFrames de entrada
     virtual void processDataframe(queue<DataFrame>& dataframes) const = 0;
 };
@@ -44,8 +45,8 @@ class BalancerHandler : public Handler<BalancerHandler> {
 public:
     // Fila de DataFrames de entrada
     std::queue<DataFrame> dataframes_in;
-    // Fila de DataFrames de saída
-    mutable std::queue<DataFrame> dataframes_out;
+    // Vetor de queues de saída
+    vector<queue<DataFrame>> dataframes_out;
 
     // Método para dividir o DataFrame em partes menores
     void processDataframe(std::queue<DataFrame>& dataframes) {
@@ -57,14 +58,14 @@ public:
 
             // Divide o DataFrame em partes menores usando múltiplas threads
             size_t num_threads = std::thread::hardware_concurrency();
-            size_t chunk_size = (df.dataframe_size / df.row_size) / num_threads;
+            size_t chunk_size = floor(df.numRows / num_threads);
 
             // Criar threads para processar o DataFrame
             std::vector<std::thread> threads;
             // Separa o DataFrame em partes menores e cria uma thread para cada parte
             for (size_t i = 0; i < num_threads; ++i) {
                 size_t start_index = i * chunk_size;
-                size_t end_index = (i == num_threads - 1) ? df.dataframe_size : (i + 1) * chunk_size;
+                size_t end_index = (i == num_threads - 1) ? df.numRows : (i + 1) * chunk_size;
 
                 // Criar uma nova thread para processar uma parte do DataFrame
                 threads.emplace_back(&BalancerHandler::processChunk, this, df, start_index, end_index);
@@ -83,8 +84,11 @@ private:
         // Criar um DataFrame para a parte do DataFrame
         DataFrame df_chunk;
         // Particione o DataFrame em partes menores
-        // TODO: Implementar a lógica para particionar o DataFrame
+        for (size_t i = start_index; i < end_index; ++i) {
+            df_chunk.addRow(df.Rows[i]);
+        }
         // Adicionar a parte do DataFrame na fila de DataFrames de saída
-        dataframes_out.push(df_chunk);
+        queue<DataFrame> q = dataframes_out[0]; // TODO: Implementar lógica para escolher a fila de saída
+        q.push(df_chunk);
     }
 };
