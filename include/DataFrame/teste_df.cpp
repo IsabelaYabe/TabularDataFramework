@@ -10,8 +10,8 @@ int main() {
     DataFrame df;
 
     // Definindo colunas e tipos (usualmente, isso seria dinâmico ou parte de um método de DataFrame)
-    vector<string> columns = {"IDEvent", "Data", "UserID", "Stimulus", "TargetComponent"};
-    vector<string> types = {"int", "string", "int", "string", "string"};
+    vector<string> columns = {"IDEvent", "DataNotificacao", "IDUsuario", "EstimuloRealizado", "ComponenteAlvo"};
+    vector<string> types = {"int", "tm", "int", "string", "string"};
     df.setColumns(columns);
     df.setTypes(types);
 
@@ -19,9 +19,9 @@ int main() {
     cout << "Testando inserir, getColumns, getTypes, getIndex, getShape, isEmpty, head e tail:" << endl;
     cout << "isEmpty: " << df.isEmpty() << endl;
         // Criando e adicionando algumas linhas
-    auto row1 = make_shared<RowCA>(1, "2022-10-01", 101, "Teste1", "ComponentA");
-    auto row2 = make_shared<RowCA>(2, "2022-10-02", 102, "Teste2", "ComponentB");
-    auto row3 = make_shared<RowCA>(3, "2022-10-03", 103, "Teste3", "ComponentC");
+    auto row1 = make_shared<RowCA>(1, 2022, 10, 1, 12, 30, 101, "Inicialização", "ComponenteA");
+    auto row2 = make_shared<RowCA>(2, 2022, 10, 2, 12, 45, 102, "Execução", "ComponenteB");
+    auto row3 = make_shared<RowCA>(3, 2022, 10, 3, 13, 00, 103, "Terminação", "ComponenteC");
     df.insertRow(row1);
     df.insertRow(row2);
     df.insertRow(row3);
@@ -83,9 +83,9 @@ int main() {
     df2.setColumns(columns);
     df2.setTypes(types);
     // Adicionando dados ao df2
-    df2.insertRow(make_shared<RowCA>(4, "2022-10-03", 103, "Teste3", "ComponentC"));
-    df2.insertRow(make_shared<RowCA>(5, "2022-10-04", 104, "Teste4", "ComponentD"));
-
+    df2.insertRow(make_shared<RowCA>(4, 2022, 10, 1, 12, 30, 101, "Inicialização", "ComponenteA"));
+    df2.insertRow(make_shared<RowCA>(5, 2022, 10, 2, 12, 45, 102, "Execução", "ComponenteB"));
+    
     try {
         df.merge(df2);
         std::cout << "Dados em df1 após o merge:" << std::endl;
@@ -94,6 +94,6 @@ int main() {
         std::cerr << "Erro ao mesclar: " << e.what() << std::endl;
     }
 
-
+    
     return 0;
 }

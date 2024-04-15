@@ -11,10 +11,10 @@ private:
 
 public:
     // Construtor 
-    RowDCFalhas(int idEvent, const string& dataNotificacao, const string& tipoDeLog,
+    RowDCFalhas(int idEvent, int year, int month, int day, int hour, int min, const string& tipoDeLog,
                 const string& conteudoTextual, const string& componenteAlvo, 
                 const string& arquivoCodigo, const string& gravidade)
-        : RowDataCat(6, idEvent, dataNotificacao, tipoDeLog, conteudoTextual),
+        : RowDataCat(6, idEvent, year, month, day, hour, min, tipoDeLog, conteudoTextual),
           Componente_alvo(componenteAlvo), Arquivo_codigo(arquivoCodigo), Gravidade(gravidade) {}
     
     // Getters

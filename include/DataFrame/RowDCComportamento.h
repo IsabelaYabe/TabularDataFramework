@@ -14,10 +14,10 @@ private:
 
 public:
     // Construtor
-    RowDCComportamento(int idEvent, const string& dataNotificacao, const string& tipoDeLog,
+    RowDCComportamento(int idEvent, int year, int month, int day, int hour, int min, const string& tipoDeLog,
                        const string& conteudoTextual, int idUsuario, const string& estimuloRealizado,
                        const string& componenteAlvo)
-        : RowDataCat(6, idEvent, dataNotificacao, tipoDeLog, conteudoTextual),  // Chamada ao construtor da classe base
+        : RowDataCat(6, idEvent, year, month, day, hour, min, tipoDeLog, conteudoTextual),  // Chamada ao construtor da classe base
           ID_usuario(idUsuario), Estimulo_realizado(estimuloRealizado), Componente_alvo(componenteAlvo) {}
 
     // Getters 

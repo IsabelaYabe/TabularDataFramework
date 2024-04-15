@@ -10,9 +10,9 @@ private:
 
 public:
     // Construtor 
-    RowDCAuditoria(int idEvent, const string& dataNotificacao, const string& tipoDeLog,
+    RowDCAuditoria(int idEvent, int year, int month, int day, int hour, int min, const string& tipoDeLog,
                    const string& conteudoTextual, int idUsuario, const string& acaoRealizada)
-        : RowDataCat(5, idEvent, dataNotificacao, tipoDeLog, conteudoTextual),  
+        : RowDataCat(5, idEvent, year, month, day, hour, min, tipoDeLog, conteudoTextual),  
           ID_usuario(idUsuario), Acao_realizada(acaoRealizada) {}
     
     // Getters
