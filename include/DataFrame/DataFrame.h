@@ -125,7 +125,7 @@ public:
 
     DataFrame iloc(int start, int end);
 
-    void print_data();
+    void printData();
 
     DataFrame merge( DataFrame& other,  std::string key);
 

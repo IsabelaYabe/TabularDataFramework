@@ -154,7 +154,7 @@ DataFrame DataFrame::iloc(int start, int end) {
 }
 
 // Imprimir os dados para depuração
-void DataFrame::print_data() {
+void DataFrame::printData() {
     for ( auto& col_name : column_order) {
          auto& col_data = data[col_name];
         std::cout << col_name << ": ";
