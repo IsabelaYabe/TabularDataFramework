@@ -1,181 +1,175 @@
 #include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <vector>
+#include "Row.h" // Make sure the path to Row.h is correctly set up
 #include "DataFrame.h"
-
-
+using namespace std;
 void sep(int n=100) {
-    std::cout << std::string(n, '-') << std::endl;
+    cout << string(n, '-') << endl;
 };
-
-
 int main() {
-    DataFrame df;
+    // Create a Row instance with an ID of 1
+    int id = 1;
+    Row row(id);
 
-    std::cout << "DataFrame inicial:" << std::endl;
-    df.printData();
-    std::cout << "Shape: " << std::endl;
-    std::cout << "Num linhas: " << df.getShape().first << std::endl;
-    std::cout << "Num colunas: " << df.getShape().second << std::endl;
+    // Add various types of data to the row
+    row.addColRow("Age", 23);                       // Add an int
+    row.addColRow("Temperature", 36.6);             // Add a double
+    row.addColRow("Name", string("John Doe"));      // Add a string
+    row.addColRow("LastName", string("Doe"));       // Add a string	
+
+    // Adding a time structure
+    time_t now = time(0);
+    tm now_tm = *localtime(&now);
+    row.addColRow("CurrentTime", now_tm);           // Add a tm structure
+
+    // Adding a vector of integers
+    vector<int> numbers = {1, 2, 3, 4, 5};
+    row.addColRow("Numbers", numbers);              // Add a vector<int>
+
+    // Printing the entire row
+    cout<< "print Row" << endl;
+    row.printRow();
+    cout << "===================" << endl;
+
+    cout << "Size: " << row.size() << endl;
+    // Accessing a specific column and printing its type
+    auto age = row.getCol("Age");
+    cout << "Type of 'Age' column: " << row.getTypeCol("Age") << endl;
+    cout << "Type of 'Temperature' column: " << row.getTypeCol("Temperature") << endl;
+    cout << "Type of 'CurrentTime' column: " << row.getTypeCol("CurrentTime") << endl;
+    cout << "Type of 'Numbers' column: " << row.getTypeCol("Numbers") << endl;
+    cout << "Type of 'Name' column: " << row.getTypeCol("Name") << endl;
+    cout << "Type of 'LastName' column: " << row.getTypeCol("LastName") << endl;
+
+    cout << "Value of 'Age' column: " << get<int>(age) << endl;
+
+    // Remove a column and try to access it
+    row.removeCol("Temperature");
+    try {
+        auto temp = row.getCol("Temperature");
+    } catch (const std::exception& e) {
+        cout << "Caught an exception trying to access removed column: " << e.what() << endl;
+    }
+
+    // Accessing and modifying vector<int> column
+    auto& numbersCol = get<vector<int>>(row.getCol("Numbers"));
+    numbersCol.push_back(6);
+    cout << "Updated Numbers column: ";
+    for (int num : numbersCol) {
+        cout << num << " ";
+    }
+    cout << endl;
+/////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+
+    // Create column names and types
+    vector<string> colNames = {"Name", "Age", "Scores"};
+    vector<string> colTypes = {"string", "int", "vector<int>"};
+
+    // Initialize DataFrame with column names and types
+    DataFrame df(colNames, colTypes);
+
+    // Create rows and add data
+    int id1 = 1;
+    auto row1 = make_shared<Row>(id1);
+    row1->addColRow("Name", string("Alice"));
+    row1->addColRow("Age", 30);
+    row1->addColRow("Scores", vector<int>{85, 92, 88});
+
+    int id2 = 2;
+    auto row2 = make_shared<Row>(id2);
+    row2->addColRow("Name", string("Bob"));
+    row2->addColRow("Age", 25);
+    row2->addColRow("Scores", vector<int>{75, 84, 79});
+
+    int id3 = 3;
+    auto row3 = make_shared<Row>(id3);
+    row3->addColRow("Name", string("Charlie"));
+    row3->addColRow("Age", 35);
+    row3->addColRow("Scores", vector<int>{90, 95, 92});
+
+    df.insertRow(row1);
+    df.insertRow(row2);
+    df.insertRow(row3);
+    cout << "linhas inseridas" << endl;
+    cout << "Colunas: "; 
+    for (const auto& col : df.getColumns()) cout << col << endl;
+    cout << "Tipos: ";
+    df.printTypes();
+    cout << "Mostrando 3 primeiras linhas:" << endl;
+    df.head(3);
+    cout << "Mostrando 2 últimas linhas:" << endl;
+    df.tail(2);
+    sep();
+
+    cout << "Testando removeRow e removebyIDEvent:" << endl;
+    // Removendo a primeira linha do DataFrame
+    try {
+        df.removeRow(0);
+    } catch (const out_of_range& e) {
+        cerr << "Erro: " << e.what() << endl;
+    }
+    cout << "df com primeira linha removida" << endl;
+    df.head(2);
+        try {
+        df.removeRow(0);
+    } catch (const out_of_range& e) {
+        cerr << "Erro: " << e.what() << endl;
+    }
+    cout << "df com a segunda linha removida" << endl;
+    df.head(1);
+
+    df.head(1);
+    df.insertRow(row1);
+    df.insertRow(row2);
+    sep();
+    cout << "Testando getRows:" << endl;
+    cout<<  "Acessando a primeira linha do DataFrame " << endl;
+    try {
+        auto firstRow = df.getRows()[0];
+        firstRow->printRow();  // Supondo que o método print() está definido em Row
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Erro: " << e.what() << std::endl;
+    }
+    sep();
+
+    cout << "Criando df2" << endl;
+    // Initialize DataFrame with column names and types
+    DataFrame df2(colNames, colTypes);
+
+    // Create rows and add data
+    int id4 = 4;
+    auto row4 = make_shared<Row>(id4);
+    row4->addColRow("Name", string("Dudu"));
+    row4->addColRow("Age", 26);
+    row4->addColRow("Scores", vector<int>{55, 22, 18});
+
+    int id5 = 5;
+    auto row5 = make_shared<Row>(id5);
+    row5->addColRow("Name", string("Herus"));
+    row5->addColRow("Age", 31);
+    row5->addColRow("Scores", vector<int>{95, 83, 39});
+
+    int id6 = 6;
+    auto row6 = make_shared<Row>(id6);
+    row6->addColRow("Name", string("Elis"));
+    row6->addColRow("Age", 5);
+    row6->addColRow("Scores", vector<int>{100, 102, 13});
     
+    df2.insertRow(row4);
+    df2.insertRow(row5);
+    df2.insertRow(row6);
+    try {
+        df.merge(df2);
+        std::cout << "Dados em df1 após o merge:" << std::endl;
+        df.head(df.getRowCount());
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Erro ao mesclar: " << e.what() << std::endl;
+    }
+
     
-    sep();
-    // Adiciona colunas iniciais ao DataFrame
-    df.addColumn("Age", std::vector<int>{25, 30, 35});
-    df.addColumn("Name", std::vector<std::string>{"Alice", "Bob", "Cathy"});
-    df.addColumn("Salary", std::vector<float>{50000.0, 60000.0, 70000.0});
-
-    std::cout << "DataFrame inicial com linhas e colunas:" << std::endl;
-    df.printData();
-    std::cout << "Columns " << std::endl;
-    for (auto col : df.getColumns()) {
-        std::cout << col << std::endl;
-    }
-    std::cout << "Shape: " << std::endl;
-    std::cout << "Num linhas: " << df.getShape().first << std::endl;
-    std::cout << "Num colunas: " << df.getShape().second << std::endl;
-
-    sep();
-    std::cout << "Modificando coluna coluna do DataFrame:" << std::endl;
-    // Altera os valores da coluna "Salary"
-    df.modifyColumn("Salary", std::vector<float>{52000.0, 62000.0, 72000.0, 82000.0});
-    df.printData();
-
-    sep();
-    std::cout << "Imprimindo coluna do DataFrame:" << std::endl;
-    // Recupera e imprime os valores da coluna "Name"
-    std::vector<float> names = df.getColumn("Name");
-    for (const auto& name : names) {
-        std::cout << name << " ";
-    }
-    std::cout << std::endl;
-
-    sep();
-    std::cout << "Modificando linha do DataFrame:" << std::endl;
-    // Modifica os valores de uma linha específica (index 1)
-    std::unordered_map<std::string, std::any> modified_row = {{"Name", "Robert"}, {"Salary", 61000.0}};
-    df.modifyRow(1, modified_row);
-    df.printData();
-
-    sep();
-    std::cout << "Adicionando linha ao DataFrame:" << std::endl;
-    // Adiciona uma nova linha ao DataFrame
-    std::unordered_map<std::string, std::any> new_row = {{"Age", 40}, {"Name", "David"}, {"Salary", 80000.0}};
-    df.addRow(new_row);
-    df.printData();
-
-    sep();
-    std::cout << "Removendo coluna age" << std::endl;
-    // Removendo a coluna "Age"
-    df.removeColumn("Age");
-
-    // Imprime o DataFrame após remover a coluna "Age"
-    std::cout << "\nDataFrame Após Remover a Coluna 'Age':" << std::endl;
-    df.printData();
-
-    df.addColumn("Age", std::vector<int>{25, 30, 35});
-
-    sep();
-    std::cout << "Removendo linha do DataFrame pelo index 1:" << std::endl;
-    // Remove uma linha específica (index 1)
-    df.removeRow(1);
-    df.printData();
-
-    sep();
-    std::cout << "Acessando linha index 1: " << std::endl;
-    // Acessando a segunda linha do DataFrame
-    std::unordered_map<std::string, std::any> row = df.getRow(1);
-
-    // Imprimindo os dados da linha acessada
-    std::cout << "\nDados da Segunda Linha:" << std::endl;
-    for (const auto& [key, value] : row) {
-        std::cout << key << ": ";
-        if (value.type() == typeid(int)) {
-            std::cout << std::any_cast<int>(value) << std::endl;
-        } else if (value.type() == typeid(float)) {
-            std::cout << std::any_cast<float>(value) << std::endl;
-        } else if (value.type() == typeid(std::string)) {
-            std::cout << std::any_cast<std::string>(value) << std::endl;
-        }
-    }
-
-    sep();
-    std::cout << "Acessando coluna Salary:" << std::endl;
-        // Acessando a coluna "Salary"
-    std::vector<float> salaries = df.getColumn("Salary");
-
-    // Imprimindo os valores da coluna "Salary"
-    std::cout << "\nValores da Coluna 'Salary':" << std::endl;
-    for (const float& salary : salaries) {
-        std::cout << salary << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Acessando o valor da coluna Salary e linha de indice 2:" << std:: endl;
-        // Acessando o valor na coluna "Salary" e linha de índice 2
-    std::any salaryValue = df.at("Salary", 2);
-
-    // Imprimindo o valor acessado
-    std::cout << "\nSalário da Terceira Pessoa: ";
-    if (salaryValue.type() == typeid(float)) {
-        std::cout << std::any_cast<float>(salaryValue);
-    } else {
-        std::cout << "Tipo inesperado de dados!";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Contando valores nulos em coluna:" << std::endl;
-    DataFrame df3;
-
-    // Adicionando colunas com dados ao DataFrame
-    df3.addColumn("Idade", std::vector<std::any>{25, std::any{}, 35, 40});
-    df3.addColumn("Nome", std::vector<std::string>{"Alice", "Bob", "Cathy", "David"});
-    df3.addColumn("Salario", std::vector<std::any>{50000.0, 60000.0, std::any{}, 80000.0});
-
-    // Imprime o DataFrame original
-    std::cout << "DataFrame Original:" << std::endl;
-    df.printData();
-
-    // Contando elementos não-nulos na coluna "Age"
-    int nonNullAge = df.countNonNull("Idade");
-    std::cout << "\nNúmero de Elementos Não-Nulos na Coluna 'Idade': " << nonNullAge << std::endl;
-
-    // Contando elementos não-nulos na coluna "Salary"
-    int nonNullSalary = df.countNonNull("Salario");
-    std::cout << "Número de Elementos Não-Nulos na Coluna 'Salario': " << nonNullSalary << std::endl;
-    
-    sep();
-    std::cout << "Obtém DataFrame da linha de índice 1 ao 3:" << std::endl;
-    // Obtém um DataFrame que contém apenas as linhas de índice 1 a 3
-    DataFrame subset = df.iloc(1, 3);
-    subset.printData();
-
-    sep();  
-    std::cout << "Obtém DataFrame merge em nomes:" << std::endl;
-    // Cria um segundo DataFrame e faz a junção com o primeiro usando a chave "Name"
-    DataFrame df2;
-    df2.addColumn("Name", std::vector<std::string>{"Alice", "Bob", "Eva"});
-    df2.addColumn("City", std::vector<std::string>{"New York", "San Francisco", "Los Angeles"});
-    DataFrame merged_df = df.merge(df2, "Name");
-    merged_df.printData();
-
-    std::cout << "GroupBySum e GroupByAVG:" << std::endl;
-    DataFrame df4;
-
-    // Adicionando dados ao DataFrame
-    df4.addColumn("Department", std::vector<std::string>{"Sales", "Sales", "HR", "HR", "IT"});
-    df4.addColumn("Salary", std::vector<float>{50000, 60000, 30000, 35000, 70000});
-
-    // Colunas para agregar
-    std::vector<std::string> aggCols{"Salary"};
-
-    // Aplicando groupByAvg
-    //DataFrame avgDf4 = df4.groupByAvg("Department", aggCols);
-
-    // Imprimindo o resultado
-    std::cout << "Resultado do GroupBy Avg:" << std::endl;
-    //avgDf4.printData();
-
-    // Aplicando groupBySUm
-    //DataFrame sumDf4 = df4.groupBySum("Department", aggCols);
-
-    return 0;  
+    return 0;
 }

@@ -12,126 +12,140 @@
 #include <numeric> 
 #include <functional>
 #include <utility>  
+#include <type_traits>
+#include <typeinfo>
+#include <memory>
+#include <algorithm>
 
-struct AnyHash {
-    std::size_t operator()( std::any& key)  {
-        if (key.type() == typeid(int)) {
-            return std::hash<int>()(std::any_cast<int>(key));
-        } else if (key.type() == typeid(float)) {
-            return std::hash<float>()(std::any_cast<float>(key));
-        } else if (key.type() == typeid(std::string)) {
-            return std::hash<std::string>()(std::any_cast<std::string>(key));
-        } else if (key.type() == typeid(std::vector<int>)) {
-             auto& vec = std::any_cast< std::vector<int>&>(key);
-            return hash_vector_int(vec);
-        } else if (key.type() == typeid(struct tm)) {
-             auto& tm_val = std::any_cast< struct tm&>(key);
-            return hash_tm(tm_val);
-        } else {
-            throw std::invalid_argument("Unsupported type for AnyHash");
-        }
-    }
+using namespace std;
 
-private:
-    std::size_t hash_vector_int( std::vector<int>& vec)  {
-        std::size_t seed = 0;
-        for (int i : vec) {
-            seed ^= std::hash<int>()(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        return seed;
-    }
+#include "Row.h"
 
-    std::size_t hash_tm( struct tm& tm_val)  {
-        std::size_t h1 = std::hash<int>()(tm_val.tm_min);
-        std::size_t h2 = std::hash<int>()(tm_val.tm_hour);
-        std::size_t h3 = std::hash<int>()(tm_val.tm_mday);
-        std::size_t h4 = std::hash<int>()(tm_val.tm_mon);
-        std::size_t h5 = std::hash<int>()(tm_val.tm_year);
-        return h1 ^ h2 ^ h3 ^ h4 ^ h5;
-    }
-};
-
-struct AnyEqual {
-    bool operator()( std::any& lhs,  std::any& rhs)  {
-        if (lhs.type() != rhs.type()) {
-            return false; // Elementos de tipos diferentes são sempre diferentes
-        }
-
-        if (lhs.type() == typeid(int)) {
-            return std::any_cast<int>(lhs) == std::any_cast<int>(rhs);
-        } else if (lhs.type() == typeid(float)) {
-            return std::any_cast<float>(lhs) == std::any_cast<float>(rhs);
-        } else if (lhs.type() == typeid(std::string)) {
-            return std::any_cast<std::string>(lhs) == std::any_cast<std::string>(rhs);
-        } else if (lhs.type() == typeid(std::vector<int>)) {
-             auto& vec1 = std::any_cast< std::vector<int>&>(lhs);
-             auto& vec2 = std::any_cast< std::vector<int>&>(rhs);
-            return vec1 == vec2;
-        } else if (lhs.type() == typeid(struct tm)) {
-             auto& tm1 = std::any_cast< struct tm&>(lhs);
-             auto& tm2 = std::any_cast< struct tm&>(rhs);
-            return tm1.tm_min == tm2.tm_min &&
-                   tm1.tm_hour == tm2.tm_hour &&
-                   tm1.tm_mday == tm2.tm_mday &&
-                   tm1.tm_mon == tm2.tm_mon &&
-                   tm1.tm_year == tm2.tm_year;
-        } else {
-            throw std::invalid_argument("Unsupported type for AnyEqual");
-        }
-    }
-};
+using namespace std;
 
 class DataFrame {
 private:
-    std::unordered_map<std::string, std::vector<std::any>> data; // Armazena os dados em colunas
-    std::unordered_map<std::string, std::type_info*> columnsTypes; // Tipos das colunas
-    std::vector<std::string> column_order; // Ordem das colunas
-    std::pair<int, int> shape; // Número de linhas e colunas
-    int nRows; // Número de linhas
-
-    void updateShape();
+    vector<string> columns;  // Vector of strings to store column names
+    unordered_map<string, string> types;  // Map to store column names and their data types
+    vector<shared_ptr<Row>> rows;  // Vector of smart pointers to Row objects
 
 public:
-    DataFrame();
+    // Default constructor
+    DataFrame() {}
 
-    void setShape(int rows, int cols);
+    // Constructor to initialize with column names and types
+    DataFrame(const vector<string>& colNames, const vector<string>& colTypes) {
+        if (colNames.size() != colTypes.size()) {
+            throw invalid_argument("Number of column names must match number of column types.");
+        }
 
-    std::pair<int, int> getShape();
+        columns = colNames;
+        for (size_t i = 0; i < columns.size(); ++i) {
+            types[columns[i]] = colTypes[i];
+        }
+    }
 
-    std::vector<std::string> getColumns();
+    const vector<string>& getColumns() const { return columns; }
+    const unordered_map<string, string>& getTypes() const { return types; }
+    const vector<shared_ptr<Row>>& getRows() const { return rows; }
+    void setColumns(const vector<string>& newColumns) {
+        columns = newColumns;
+    }
+    void setTypes(const unordered_map<string, string>& newTypes) { types = newTypes;}
+        void setRows(const vector<shared_ptr<Row>>& newRows) {
+        rows = newRows;
+    }
+    bool validateRow(const Row& row) const {
+        // Verifica se todos os campos da Row estão nas colunas do DataFrame e se os tipos são compatíveis
+        const auto& row_data = row.getData(); // Supõe que há um método getData() que retorna a map da Row
 
-    template <typename T>
-    void addColumn(std::string name, std::vector<T>& col_data);
+        for (const auto& [key, value] : row_data) {
+            auto col_it = types.find(key);
+            if (col_it == types.end()) {
+                cout << "Column '" << key << "' not found in DataFrame." << endl;
+                return false;
+            }
 
-    void removeColumn(std::string name);
+            // Verifica o tipo usando type_index
+            const type_index typeIndexDataframe(typeid(value));
+            const type_index typeIndexRow(typeid(decltype(value))); // Precisa de modificação conforme a implementação real
 
-    template <typename T>
-    void modifyColumn(std::string name, std::vector<T>& new_values);
+            if (typeIndexDataframe != typeIndexRow) {
+                cout << "Type mismatch for column '" << key << "'. Expected " << col_it->second << " but found " << typeid(value).name() << endl;
+                return false;
+            }
+        }
 
-    void addRow(std::unordered_map<std::string, std::any>& new_row);
+        return true;
+    }
+    // Method to add a row
+    void insertRow(const shared_ptr<Row>& row) {
+        try {
+            if (!validateRow(*row)) {
+                throw invalid_argument("Row is not compatible with DataFrame.");
+            }
+        } catch (const invalid_argument& e) {
+            cerr << "Error: " << e.what() << endl;
+            return;
+        }
+        rows.push_back(row);
+    }
+    
+    void removeRow(int index) {
+        if (index < 0 || index >= static_cast<int>(rows.size())) throw out_of_range("Index out of range");
+        rows.erase(rows.begin() + index);
+    }
 
-    void removeRow(int index);
+    const shared_ptr<Row>& getRow(int index) const {
+        if (index < 0 || index >= static_cast<int>(rows.size())) throw out_of_range("Index out of range");
+        return rows[index];
+    }
 
-    void modifyRow(int index, std::unordered_map<std::string, std::any>& new_values);
+    // Method to get the number of rows
+    size_t getRowCount() const {
+        return rows.size();
+    }
 
-    std::unordered_map<std::string, std::any> getRow(int index);
+    // Method to get the number of columns
+    size_t getColumnCount() const {
+        return columns.size();
+    }
+    void merge(const DataFrame& other) {
+        if (columns != other.columns || types != other.types) {
+            throw invalid_argument("DataFrames have different columns or types and cannot be merged.");
+        }
+        rows.insert(rows.end(), other.rows.begin(), other.rows.end());
+    }
+    void head(int n) const {
+        if (n > static_cast<int>(rows.size())) {
+            n = rows.size(); // Limita n ao tamanho do vetor se for maior que o número de linhas
+        }
+        for (int i = 0; i < n; i++) {
+            rows[i]->printRow();
+        }
+    }
+    void tail(int n) const {
+        int start = std::max(0, static_cast<int>(rows.size()) - n);
+        for (int i = start; i < static_cast<int>(rows.size()); i++) {
+            rows[i]->printRow();
+        }
+    }
+    void printTypes() const {
+        if (!rows.empty()) {
+            rows[0]->printTypes(); // Correctly calling a method that should exist in `Row`
+        }
+    }
+    // Method to print DataFrame details
+    void printDataFrame() const {
+        for (const auto& col : columns) {
+            cout << col << " ";
+        }
+        cout << endl;
 
-    template <typename T>
-    std::vector<T> getColumn(std::string name);
-
-    std::any at( std::string column, int index);
-
-    int countNonNull( std::string column);
-
-    DataFrame iloc(int start, int end);
-
-    void printData();
-
-    DataFrame merge( DataFrame& other,  std::string key);
-
-    // DataFrame groupBySum( std::string& key,  std::vector<std::string>& aggCols = {});
-
-    // DataFrame groupByAvg( std::string& key, std::vector<std::string>& aggCols = {});
+        for (const auto& row : rows) {
+            row->printRow();
+        }
+    }
 };
 
 #endif // DATAFRAME_H
