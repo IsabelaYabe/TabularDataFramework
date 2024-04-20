@@ -25,26 +25,26 @@ int main() {
     cout << "Testando compareTimer com " << endl;
 
         // Example date-time string
-    std::string dateTimeStr = "09-23-2019 03:55:45";
+    string dateTimeStr = "2019-04-23 03:55:45";
 
     // Convert string to Time object
     auto maybeTime = Time::fromString(dateTimeStr);
-
+    maybeTime->print();
     // Check if the conversion was successful
     if (maybeTime.has_value()) {
-        std::cout << "Successfully parsed the date-time string." << std::endl;
-        std::cout << "The date-time is: ";
+        cout << "Successfully parsed the date-time string." << endl;
+        cout << "The date-time is: ";
         maybeTime->print();  // Use the print method of Time class to display the date-time
     } else {
-        std::cout << "Failed to parse the date-time string." << std::endl;
+        cout << "Failed to parse the date-time string." << endl;
     }
 
-    Time tm1(23, 9, 2019, 3, 55, 45); 
+    Time tm1(2019, 9, 20, 3, 55, 45); 
 
-    Time tm2(20, 9, 2019, 2, 55, 12);
+    Time tm2(2019, 9, 20, 2, 55, 12);
     
     bool result = Time::compareTime(tm1, tm2, Time::TimeMeasure::Year, Time::CompareType::Equal);
-    std::cout << "Comparison result: " << result << std::endl;
+    cout << "Comparison result: " << result << endl;
     cout << "tm1 é igual tm2? " << (result ? "Sim" : "Não") << endl;
     sep();
     cout<< "Testando Row" << endl;
@@ -77,7 +77,7 @@ int main() {
         row0.mergeRows(row00, "City");
         cout << "Row 0 after merging:" << endl;
         row0.printRow();
-    } catch (const std::exception& e) {
+    } catch (const exception& e) {
         cout << "Exception occurred: " << e.what() << endl;
     }
     sep();
@@ -119,7 +119,7 @@ int main() {
     row.removeCol("Temperature");
     try {
         auto temp = row.getCol("Temperature");
-    } catch (const std::exception& e) {
+    } catch (const exception& e) {
         cout << "Caught an exception trying to access removed column: " << e.what() << endl;
     }
 
@@ -207,8 +207,8 @@ int main() {
     try {
         auto firstRow = df.getRows()[0];
         firstRow->printRow();  // Supondo que o método print() está definido em Row
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Erro: " << e.what() << std::endl;
+    } catch (const out_of_range& e) {
+        cerr << "Erro: " << e.what() << endl;
     }
     sep();
 
@@ -237,10 +237,10 @@ int main() {
     df2.insertRow(row6);
     try {
         df.merge(df2);
-        std::cout << "Dados em df1 após o merge:" << std::endl;
+        cout << "Dados em df1 após o merge:" << endl;
         df.head(df.getRowCount());
-    } catch (const std::invalid_argument& e) {
-        std::cerr << "Erro ao mesclar: " << e.what() << std::endl;
+    } catch (const invalid_argument& e) {
+        cerr << "Erro ao mesclar: " << e.what() << endl;
     }
 
     sep();
