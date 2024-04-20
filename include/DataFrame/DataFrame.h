@@ -16,8 +16,22 @@
 #include <typeinfo>
 #include <memory>
 #include <algorithm>
+#include <map>
+/**
+struct RowVariantComparator {
+    bool operator()(const RowVariant& a, const RowVariant& b) const {
+        return visit([](const auto& av, const auto& bv) {
+            using AV = decay_t<decltype(av)>;
+            using BV = decay_t<decltype(bv)>;
 
-using namespace std;
+            if constexpr (is_same_v<AV, BV>) {
+                return av < bv;
+            } else {
+                return typeid(av).before(typeid(bv));
+            }
+        }, a, b);
+    }
+};*/
 
 #include "Row.h"
 
@@ -32,6 +46,7 @@ private:
 public:
     // Default constructor
     DataFrame() {}
+
 
     // Constructor to initialize with column names and types
     DataFrame(const vector<string>& colNames, const vector<string>& colTypes) {
@@ -54,9 +69,22 @@ public:
     bool containsColumn(const string& name) const {
         return std::find(columns.begin(), columns.end(), name) != columns.end();
     }
-    void setTypes(const unordered_map<string, string>& newTypes) { types = newTypes;}
-        void setRows(const vector<shared_ptr<Row>>& newRows) {
+    void setTypes(const vector<string>& newTypes) { 
+        if (columns.size() != newTypes.size()) {
+            throw invalid_argument("Number of column names must match number of column types.");
+        }
+        for (size_t i = 0; i < columns.size(); ++i) {
+            types[columns[i]] = newTypes[i];
+        }
+    }
+    void setRows(const vector<shared_ptr<Row>>& newRows) {
         rows = newRows;
+    }
+    size_t getRowSize() const {
+        return rows.size();
+    }
+    size_t getColumnSize() const {
+        return columns.size();
     }
     bool validateRow(const Row& row) const {
         // Verifica se todos os campos da Row estão nas colunas do DataFrame e se os tipos são compatíveis
@@ -154,9 +182,9 @@ public:
         if (!containsColumn(joinColumn) || !other.containsColumn(joinColumn)) {
             throw invalid_argument("Join column must be present in both DataFrames.");
         }
-    
+
         vector<int> rowsToRemove;
-    
+
         for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
             bool matchFound = false;
             for (const auto& otherRow : other.rows) {
@@ -174,13 +202,39 @@ public:
                 rowsToRemove.push_back(i);
             }
         }
-    
+
         // Remove rows that did not find a match
         // Must be done in reverse to avoid invalidating indices
         for (auto it = rowsToRemove.rbegin(); it != rowsToRemove.rend(); ++it) {
             removeRow(*it);
         }
     }
+    /*
+    DataFrame groupBySum(const string& groupColumn) {
+        if (!containsColumn(groupColumn)) {
+            throw invalid_argument("Column must exist in the DataFrame.");
+        }
+
+        vector<string> names = {groupColumn, "Count"};
+        vector<string> type = {types[groupColumn], "double"};
+
+        DataFrame result(names, type);
+
+        map<RowVariant, double, RowVariantComparator> sumMap;
+        for (const auto& row : rows) {
+            RowVariant groupValue = row->getCol(groupColumn);  // Supõe que getCol retorna RowVariant
+            sumMap[groupValue] += 1;  // Aumenta a contagem ou inicializa em 1 se não existir
+        }
+
+        // Inserir os resultados acumulados no novo DataFrame
+        for (const auto& [key, value] : sumMap) {
+            // Suponha que result possa inserir linhas de alguma forma
+            result.insertRow(make_shared<Row>(key, value));  // Supõe que Row tenha um construtor adequado
+        }
+
+        return result;
+    }*/
+    
 
 };
 

@@ -17,6 +17,7 @@
 #include <variant>
 #include <typeindex>
 #include <iomanip>
+#include "Time.h"
 
 using namespace std;
 
@@ -31,15 +32,13 @@ bool operator!=(const tm& lhs, const tm& rhs) {
              lhs.tm_yday == rhs.tm_yday &&
              lhs.tm_isdst == rhs.tm_isdst);
 }
-using RowVariant = variant<int, double, tm, string, vector<int>>;
+using RowVariant = variant<int, double, tm, string, vector<int>, Time>;
 
 class Row {
     private:
         unordered_map<string, RowVariant> row;
-        int ID;
     public:
-        Row(int& id) : ID(id) {}
-
+        Row() {}
         
         void addColRow(const string& name, const RowVariant& value) {
                 row[name] = value;
@@ -107,14 +106,7 @@ class Row {
                 return typeid(T).name();
             }, it->second);
         }
-
-        void setID(int id) {
-            ID = id;
-        }
-
-        int getID() const {
-            return ID;
-        }    
+  
         ///////////////////////////////////////////////////
         //////////////////////////////////////////////////
         // Method to check if the Row contains a column.
