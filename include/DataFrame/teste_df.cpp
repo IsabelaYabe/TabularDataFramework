@@ -1,7 +1,18 @@
 #include <iostream>
-#include <iomanip>
-#include <ctime>
+#include <string>
 #include <vector>
+#include <unordered_map>
+#include <any>
+#include <stdexcept>
+#include <typeinfo>
+#include <ctime> 
+#include <numeric> 
+#include <functional>
+#include <utility>  
+#include <type_traits>
+#include <typeinfo>
+#include <memory>
+#include <algorithm>
 #include "Row.h" // Make sure the path to Row.h is correctly set up
 #include "DataFrame.h"
 using namespace std;
@@ -9,6 +20,42 @@ void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
+    cout<< "Testando Row" << endl;
+    sep();
+    cout<< "Testando RowMerge" << endl;
+    int commonId = 1;
+    int commonId2 = 2;
+    Row row0(commonId);
+    Row row00(commonId2);
+
+    // Add columns to row1
+    row0.addColRow("ID", 1);
+    row0.addColRow("Name", string("John Doe"));
+    row0.addColRow("Age", 30);
+    row0.addColRow("City", string("New York"));
+
+    // Add columns to row2
+    row00.addColRow("ID", 1);
+    row00.addColRow("Name", string("Mary"));
+    row00.addColRow("Address", string("1234 Elm Street"));
+    row00.addColRow("Phone", string("555-1234"));
+    row00.addColRow("City", string("New York"));
+
+    // Print the rows before merging
+    cout << "Row 0 before merging:" << endl;
+    row0.printRow();
+    cout << "Row 00 before merging:" << endl;
+    row00.printRow();
+
+    // Attempt to merge the rows
+    try {
+        row0.mergeRows(row00, "City");
+        cout << "Row 0 after merging:" << endl;
+        row0.printRow();
+    } catch (const std::exception& e) {
+        cout << "Exception occurred: " << e.what() << endl;
+    }
+    sep();
     // Create a Row instance with an ID of 1
     int id = 1;
     Row row(id);
@@ -62,7 +109,10 @@ int main() {
     }
     cout << endl;
 /////////////////////////////////////////////////////////////////////////
-
+    sep();
+    cout << "Testando DataFrame" << endl;
+    sep();
+    //
 ///////////////////////////////////////////////////////////////////////////////
 
     // Create column names and types
@@ -105,6 +155,12 @@ int main() {
     df.tail(2);
     sep();
 
+    cout << "Testando containsColumns" << endl;
+    if(df.containsColumn("Name")) {
+        cout << "Coluna 'Name' encontrada" << endl;
+    } else {
+        cout << "Coluna 'Name' não encontrada" << endl;
+    }
     cout << "Testando removeRow e removebyIDEvent:" << endl;
     // Removendo a primeira linha do DataFrame
     try {
@@ -170,6 +226,71 @@ int main() {
         std::cerr << "Erro ao mesclar: " << e.what() << std::endl;
     }
 
+    sep();
+    cout << "Testando innerJoin" << endl;
+    // Create column names and types
+    vector<string> colNamesIJ = {"Name", "Age", "Scores" , "ID"};
+    vector<string> colTypesIJ = {"string", "int", "vector<int>", "int"};
+
+    // Initialize DataFrame with column names and types
+    DataFrame df11(colNamesIJ, colTypesIJ);
+
+    // Create rows and add data
+    int id11 = 1;
+    auto row11 = make_shared<Row>(id11);
+    row11->addColRow("Name", string("Alice"));
+    row11->addColRow("Age", 30);
+    row11->addColRow("Scores", vector<int>{85, 92, 88});
+    row11->addColRow("ID", 1);
+
+    int id21 = 2;
+    auto row21 = make_shared<Row>(id21);
+    row21->addColRow("Name", string("Bob"));
+    row21->addColRow("Age", 25);
+    row21->addColRow("Scores", vector<int>{75, 84, 79});
+    row21->addColRow("ID", 2);
+
+    int id31 = 3;
+    auto row31 = make_shared<Row>(id31);
+    row31->addColRow("Name", string("Charlie"));
+    row31->addColRow("Age", 35);
+    row31->addColRow("Scores", vector<int>{90, 95, 92});
+    row31->addColRow("ID", 3);
+
+    df11.insertRow(row11);
+    df11.insertRow(row21);
+    df11.insertRow(row31);
+
+   // Initialize DataFrame with column names and types
+    vector<string> colNamesIJ2 = {"City", "Cats", "ID"};
+    vector<string> colTypesIJ2 = {"string", "int", "int"};
+    DataFrame df12(colNamesIJ2, colTypesIJ2);
+
+    // Create rows and add data
+    int id12 = 12;
+    auto row12 = make_shared<Row>(id12);
+    row12->addColRow("City", string("Rio de Janeiro"));
+    row12->addColRow("Cats", 3);
+    row12->addColRow("ID", 1);
+
+    int id22 = 2;
+    auto row22 = make_shared<Row>(id22);
+    row22->addColRow("City", string("Moscow"));
+    row22->addColRow("Cats", 2);
+    row22->addColRow("ID", 2);
+
+    int id32 = 3;
+    auto row32 = make_shared<Row>(id32);
+    row32->addColRow("City", string("Sidney"));
+    row32->addColRow("Cats", 5);
+    row32->addColRow("ID", 4);
+
+    df12.insertRow(row12);
+    df12.insertRow(row22);
+    df12.insertRow(row32);
+
+    // Realizando o inner join nos DataFrames
+    df11.innerJoin(df12, "ID");
     
     return 0;
 }

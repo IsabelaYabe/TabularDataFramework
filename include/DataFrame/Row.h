@@ -20,7 +20,18 @@
 
 using namespace std;
 
-using RowVariant = variant<int, double, string, tm, vector<int>>;
+bool operator!=(const tm& lhs, const tm& rhs) {
+    return !(lhs.tm_sec == rhs.tm_sec &&
+             lhs.tm_min == rhs.tm_min &&
+             lhs.tm_hour == rhs.tm_hour &&
+             lhs.tm_mday == rhs.tm_mday &&
+             lhs.tm_mon == rhs.tm_mon &&
+             lhs.tm_year == rhs.tm_year &&
+             lhs.tm_wday == rhs.tm_wday &&
+             lhs.tm_yday == rhs.tm_yday &&
+             lhs.tm_isdst == rhs.tm_isdst);
+}
+using RowVariant = variant<int, double, tm, string, vector<int>>;
 
 class Row {
     private:
@@ -29,13 +40,9 @@ class Row {
     public:
         Row(int& id) : ID(id) {}
 
-        template<typename T>
-        void addColRow(const string& name, const T& value) {
-            if constexpr (is_same_v<T, int> || is_same_v<T, double> || is_same_v<T, string> || is_same_v<T, tm> || is_same_v<T, vector<int>>) {
+        
+        void addColRow(const string& name, const RowVariant& value) {
                 row[name] = value;
-            } else {
-                throw invalid_argument("Type not supported");
-            }
         }
 
         size_t size(){
@@ -57,6 +64,7 @@ class Row {
                 }
                 return it->second;
             }
+
         const unordered_map<string, RowVariant>& getData() const {
             return row;
         }
@@ -106,7 +114,59 @@ class Row {
 
         int getID() const {
             return ID;
-        }       
+        }    
+        ///////////////////////////////////////////////////
+        //////////////////////////////////////////////////
+        // Method to check if the Row contains a column.
+    bool containsColumn(const string& name) const {
+        return row.find(name) != row.end();
+    }
+
+    RowVariant getCol_(const string& name) const {
+        auto it = row.find(name);
+        if (it == row.end()) {
+            throw invalid_argument("Column not found");
+        }
+        return it->second;
+    }
+
+    // Method to merge two Rows based on a column.
+    void mergeRows(const Row& otherRow, const string& mergeColumn) {
+        if (!containsColumn(mergeColumn) || !otherRow.containsColumn(mergeColumn)) {
+            throw invalid_argument("Merge column not found in one or both rows");
+        }
+    
+        if (getCol_(mergeColumn) != otherRow.getCol_(mergeColumn)) {
+            throw invalid_argument("Merge column values do not match");
+        }
+        // Add columns from otherRow that are not in this row.
+        for (const auto& [key, value] : otherRow.getData()) {
+            if (!containsColumn(key) && !containsColumn(key)) {
+                addColRow(key, value);
+            }
+        }
+    }
+
+        // Method to merge two Rows based on a column.
+    std::unique_ptr<Row> mergeRowsU(const Row& otherRow, const string& mergeColumn) {
+        if (!containsColumn(mergeColumn) || !otherRow.containsColumn(mergeColumn)) {
+            return nullptr;
+        }
+
+        if (getCol_(mergeColumn) != otherRow.getCol_(mergeColumn)) {
+            return nullptr;
+        }
+
+        Row newRow(*this); // Copiar a linha atual para a nova linha
+        // Adicionar colunas de otherRow que não estão nesta linha
+        for (const auto& [key, value] : otherRow.getData()) {
+            if (!containsColumn(key)) {
+                newRow.addColRow(key, value);
+            }
+        }
+        return std::make_unique<Row>(newRow);
+    }
+  
 
     };
 

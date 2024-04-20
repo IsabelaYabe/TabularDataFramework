@@ -47,9 +47,12 @@ public:
 
     const vector<string>& getColumns() const { return columns; }
     const unordered_map<string, string>& getTypes() const { return types; }
-    const vector<shared_ptr<Row>>& getRows() const { return rows; }
+    const vector<shared_ptr<Row>>& getRows() const{ return rows; }
     void setColumns(const vector<string>& newColumns) {
         columns = newColumns;
+    }
+    bool containsColumn(const string& name) const {
+        return std::find(columns.begin(), columns.end(), name) != columns.end();
     }
     void setTypes(const unordered_map<string, string>& newTypes) { types = newTypes;}
         void setRows(const vector<shared_ptr<Row>>& newRows) {
@@ -144,6 +147,23 @@ public:
 
         for (const auto& row : rows) {
             row->printRow();
+        }
+    }
+    
+    void innerJoin(const DataFrame& other, const string& joinColumn) const {
+        if (!containsColumn(joinColumn) || !other.containsColumn(joinColumn)) {
+            throw invalid_argument("Join column must be present in both DataFrames.");
+        }
+
+        // Iterate through each row in *this and look for matching rows in other
+        for (auto& thisRow : rows) {
+            for (auto& otherRow : other.rows) {
+                try {
+                    thisRow->mergeRows(*otherRow, joinColumn);
+                } catch (const invalid_argument& e) {
+                    cerr << "Error: " << e.what() << endl;
+                }
+            }
         }
     }
 };
