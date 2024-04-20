@@ -131,7 +131,7 @@ class Row {
     }
 
     // Method to merge two Rows based on a column.
-    void mergeRows(const Row& otherRow, const string& mergeColumn) {
+    bool mergeRows(const Row& otherRow, const string& mergeColumn) {
         if (!containsColumn(mergeColumn) || !otherRow.containsColumn(mergeColumn)) {
             throw invalid_argument("Merge column not found in one or both rows");
         }
@@ -145,26 +145,7 @@ class Row {
                 addColRow(key, value);
             }
         }
-    }
-
-        // Method to merge two Rows based on a column.
-    std::unique_ptr<Row> mergeRowsU(const Row& otherRow, const string& mergeColumn) {
-        if (!containsColumn(mergeColumn) || !otherRow.containsColumn(mergeColumn)) {
-            return nullptr;
-        }
-
-        if (getCol_(mergeColumn) != otherRow.getCol_(mergeColumn)) {
-            return nullptr;
-        }
-
-        Row newRow(*this); // Copiar a linha atual para a nova linha
-        // Adicionar colunas de otherRow que não estão nesta linha
-        for (const auto& [key, value] : otherRow.getData()) {
-            if (!containsColumn(key)) {
-                newRow.addColRow(key, value);
-            }
-        }
-        return std::make_unique<Row>(newRow);
+        return true;
     }
   
 

@@ -229,7 +229,7 @@ int main() {
     sep();
     cout << "Testando innerJoin" << endl;
     // Create column names and types
-    vector<string> colNamesIJ = {"Name", "Age", "Scores" , "ID"};
+    vector<string> colNamesIJ = {"Name", "Age", "Scores" , "IDi"};
     vector<string> colTypesIJ = {"string", "int", "vector<int>", "int"};
 
     // Initialize DataFrame with column names and types
@@ -241,28 +241,28 @@ int main() {
     row11->addColRow("Name", string("Alice"));
     row11->addColRow("Age", 30);
     row11->addColRow("Scores", vector<int>{85, 92, 88});
-    row11->addColRow("ID", 1);
+    row11->addColRow("IDi", 1);
 
     int id21 = 2;
     auto row21 = make_shared<Row>(id21);
     row21->addColRow("Name", string("Bob"));
     row21->addColRow("Age", 25);
     row21->addColRow("Scores", vector<int>{75, 84, 79});
-    row21->addColRow("ID", 2);
+    row21->addColRow("IDi", 2);
 
     int id31 = 3;
     auto row31 = make_shared<Row>(id31);
     row31->addColRow("Name", string("Charlie"));
     row31->addColRow("Age", 35);
     row31->addColRow("Scores", vector<int>{90, 95, 92});
-    row31->addColRow("ID", 3);
+    row31->addColRow("IDi", 3);
 
     df11.insertRow(row11);
     df11.insertRow(row21);
     df11.insertRow(row31);
 
    // Initialize DataFrame with column names and types
-    vector<string> colNamesIJ2 = {"City", "Cats", "ID"};
+    vector<string> colNamesIJ2 = {"City", "Cats", "IDi"};
     vector<string> colTypesIJ2 = {"string", "int", "int"};
     DataFrame df12(colNamesIJ2, colTypesIJ2);
 
@@ -271,26 +271,26 @@ int main() {
     auto row12 = make_shared<Row>(id12);
     row12->addColRow("City", string("Rio de Janeiro"));
     row12->addColRow("Cats", 3);
-    row12->addColRow("ID", 1);
+    row12->addColRow("IDi", 1);
 
     int id22 = 2;
     auto row22 = make_shared<Row>(id22);
     row22->addColRow("City", string("Moscow"));
     row22->addColRow("Cats", 2);
-    row22->addColRow("ID", 2);
+    row22->addColRow("IDi", 2);
 
     int id32 = 3;
     auto row32 = make_shared<Row>(id32);
     row32->addColRow("City", string("Sidney"));
     row32->addColRow("Cats", 5);
-    row32->addColRow("ID", 4);
+    row32->addColRow("IDi", 4);
 
     df12.insertRow(row12);
     df12.insertRow(row22);
     df12.insertRow(row32);
 
     // Realizando o inner join nos DataFrames
-    df11.innerJoin(df12, "ID");
-    
+    df11.innerJoin(df12, "IDi");
+    df11.printDataFrame();    
     return 0;
 }

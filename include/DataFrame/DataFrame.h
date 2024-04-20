@@ -150,22 +150,38 @@ public:
         }
     }
     
-    void innerJoin(const DataFrame& other, const string& joinColumn) const {
+    void innerJoin(DataFrame& other, const string& joinColumn) {
         if (!containsColumn(joinColumn) || !other.containsColumn(joinColumn)) {
             throw invalid_argument("Join column must be present in both DataFrames.");
         }
-
-        // Iterate through each row in *this and look for matching rows in other
-        for (auto& thisRow : rows) {
-            for (auto& otherRow : other.rows) {
+    
+        vector<int> rowsToRemove;
+    
+        for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
+            bool matchFound = false;
+            for (const auto& otherRow : other.rows) {
                 try {
-                    thisRow->mergeRows(*otherRow, joinColumn);
+                    // Assuming mergeRows checks for join column match and merges the rows if they match
+                    if (rows[i]->mergeRows(*otherRow, joinColumn)) {
+                        matchFound = true;
+                        break;
+                    }
                 } catch (const invalid_argument& e) {
                     cerr << "Error: " << e.what() << endl;
                 }
             }
+            if (!matchFound) {
+                rowsToRemove.push_back(i);
+            }
+        }
+    
+        // Remove rows that did not find a match
+        // Must be done in reverse to avoid invalidating indices
+        for (auto it = rowsToRemove.rbegin(); it != rowsToRemove.rend(); ++it) {
+            removeRow(*it);
         }
     }
+
 };
 
 #endif // DATAFRAME_H
