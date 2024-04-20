@@ -97,6 +97,37 @@ static bool compareTime(const Time& a, const Time& b, TimeMeasure measure, Compa
                  lhs.month == rhs.month &&
                  lhs.year == rhs.year);
     }
+
+    friend bool operator==(const Time& lhs, const Time& rhs) {
+        return lhs.second == rhs.second &&
+               lhs.minute == rhs.minute &&
+               lhs.hour == rhs.hour &&
+               lhs.day == rhs.day &&
+               lhs.month == rhs.month &&
+               lhs.year == rhs.year;
+    }
+
+    friend bool operator<(const Time& lhs, const Time& rhs) {
+        if (lhs.year != rhs.year) return lhs.year < rhs.year;
+        if (lhs.month != rhs.month) return lhs.month < rhs.month;
+        if (lhs.day != rhs.day) return lhs.day < rhs.day;
+        if (lhs.hour != rhs.hour) return lhs.hour < rhs.hour;
+        if (lhs.minute != rhs.minute) return lhs.minute < rhs.minute;
+        return lhs.second < rhs.second;
+    }
+
+    friend bool operator>(const Time& lhs, const Time& rhs) {
+        return rhs < lhs;
+    }
+
+    friend bool operator<=(const Time& lhs, const Time& rhs) {
+        return !(lhs > rhs);
+    }
+
+    friend bool operator>=(const Time& lhs, const Time& rhs) {
+        return !(lhs < rhs);
+    }
+    
 };
 
 
