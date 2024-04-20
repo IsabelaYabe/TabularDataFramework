@@ -396,8 +396,9 @@ int main() {
     salesDF.innerJoin(reviewsDF, "Date");
     salesDF.printDataFrame();
     //Realizando o groupBySum
-    //DataFrame resultado = dfGBS.groupBySum("Name");
-    //resultado.printDataFrame();
+    cout << "Realizando o groupBySum no DataFrame de vendas" << endl;
+    DataFrame resultado = dfGBS.groupBySum("Name", "Age");
+    resultado.printDataFrame();
     sep();   
     return 0;
 }
