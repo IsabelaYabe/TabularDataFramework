@@ -8,7 +8,6 @@
 #include <any>
 #include <stdexcept>
 #include <typeinfo>
-#include <ctime> 
 #include <numeric> 
 #include <functional>
 #include <utility>  
@@ -17,29 +16,18 @@
 #include <variant>
 #include <typeindex>
 #include <iomanip>
+#include "Time.h"
 
 using namespace std;
 
-bool operator!=(const tm& lhs, const tm& rhs) {
-    return !(lhs.tm_sec == rhs.tm_sec &&
-             lhs.tm_min == rhs.tm_min &&
-             lhs.tm_hour == rhs.tm_hour &&
-             lhs.tm_mday == rhs.tm_mday &&
-             lhs.tm_mon == rhs.tm_mon &&
-             lhs.tm_year == rhs.tm_year &&
-             lhs.tm_wday == rhs.tm_wday &&
-             lhs.tm_yday == rhs.tm_yday &&
-             lhs.tm_isdst == rhs.tm_isdst);
-}
-using RowVariant = variant<int, double, tm, string, vector<int>>;
+
+using RowVariant = variant<int, double, string, vector<int>, Time>;
 
 class Row {
     private:
         unordered_map<string, RowVariant> row;
-        int ID;
     public:
-        Row(int& id) : ID(id) {}
-
+        Row() {}
         
         void addColRow(const string& name, const RowVariant& value) {
                 row[name] = value;
@@ -88,8 +76,8 @@ class Row {
                         }
                     } else if constexpr (is_same_v<T, string>) {
                         cout << '"' << arg << '"';
-                    } else if constexpr (is_same_v<T, tm>) {
-                        cout << put_time(&arg, "%c");
+                    } else if constexpr (is_same_v<T, Time>) {
+                        arg.print();
                     }
                     cout << " ";
                 }, value);
@@ -107,14 +95,7 @@ class Row {
                 return typeid(T).name();
             }, it->second);
         }
-
-        void setID(int id) {
-            ID = id;
-        }
-
-        int getID() const {
-            return ID;
-        }    
+  
         ///////////////////////////////////////////////////
         //////////////////////////////////////////////////
         // Method to check if the Row contains a column.
