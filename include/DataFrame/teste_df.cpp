@@ -91,8 +91,7 @@ int main() {
     row.addColRow("LastName", string("Doe"));       // Add a string	
 
     // Adding a time structure
-    time_t now = time(0);
-    tm now_tm = *localtime(&now);
+    Time now_tm(23, 9, 2019, 3, 55, 45);
     row.addColRow("CurrentTime", now_tm);           // Add a tm structure
 
     // Adding a vector of integers
@@ -335,6 +334,67 @@ int main() {
     dfGBS.insertRow(rowGBS2);
     dfGBS.insertRow(rowGBS3);   
 
+    sep();
+    sep();
+    // Definindo as colunas para o DataFrame 1
+    vector<string> colNames1 = {"Date", "Name", "ID", "Price", "Scores"};
+    vector<string> colTypes1 = {"string", "string", "int", "double", "vector<int>"};
+
+    // Inicializando o DataFrame 1
+    DataFrame salesDF(colNames1, colTypes1);
+
+    // Criando e adicionando linhas ao DataFrame de vendas
+    auto saleRow1 = make_shared<Row>();
+    saleRow1->addColRow("Date", Time(20,04,2024));
+    saleRow1->addColRow("Name", string("Smartphone X"));
+    saleRow1->addColRow("ID", 101);
+    saleRow1->addColRow("Price", 999.99);
+    saleRow1->addColRow("Scores", vector<int>{88, 90, 85});
+
+    auto saleRow2 = make_shared<Row>();
+    saleRow2->addColRow("Date", Time(21,04,2024));
+    saleRow2->addColRow("Name", string("Laptop Pro"));
+    saleRow2->addColRow("ID", 102);
+    saleRow2->addColRow("Price", 1200.00);
+    saleRow2->addColRow("Scores", vector<int>{92, 89, 91});
+
+    salesDF.insertRow(saleRow1);
+    salesDF.insertRow(saleRow2);
+
+    // Definindo as colunas para o DataFrame 2
+    vector<string> colNames2 = {"Date", "Name", "ID", "Reviewer", "Rating"};
+    vector<string> colTypes2 = {"string", "string", "int", "string", "int"};
+
+    // Inicializando o DataFrame de avaliações
+    DataFrame reviewsDF(colNames2, colTypes2);
+
+    // Criando e adicionando linhas ao DataFrame de avaliações
+    auto reviewRow1 = make_shared<Row>();
+    reviewRow1->addColRow("Date", Time(20,04,2024));
+    reviewRow1->addColRow("Name", string("Smartphone X"));
+    reviewRow1->addColRow("ID", 101);
+    reviewRow1->addColRow("Reviewer", string("John Doe"));
+    reviewRow1->addColRow("Rating", 5);
+
+    auto reviewRow2 = make_shared<Row>();
+    reviewRow2->addColRow("Date", Time(21,04,2024));
+    reviewRow2->addColRow("Name", string("Laptop Pro"));
+    reviewRow2->addColRow("ID", 102);
+    reviewRow2->addColRow("Reviewer", string("Jane Smith"));
+    reviewRow2->addColRow("Rating", 4);
+
+    reviewsDF.insertRow(reviewRow1);
+    reviewsDF.insertRow(reviewRow2);
+
+    // Imprimindo ambos os DataFrames
+    cout << "Sales DataFrame:" << endl;
+    salesDF.printDataFrame();
+    cout << "Reviews DataFrame:" << endl;
+    reviewsDF.printDataFrame();
+
+    cout << "Realizando o inner join nos DataFrames de vendas e avaliações" << endl;
+    salesDF.innerJoin(reviewsDF, "Date");
+    salesDF.printDataFrame();
     // Realizando o groupBySum
     //auto result = dfGBS.groupBySum("Name");
     //result.printDataFrame();

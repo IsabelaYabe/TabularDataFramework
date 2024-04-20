@@ -8,20 +8,19 @@
 #include <optional>
 
 class Time {
- private:
+private:
   int day;
   int month;
   int year;
   int hour;
   int minute;
   int second;
-
  public:
  enum class TimeMeasure { Year, Month, Day, Hour, Minute, Second }; 
  enum class CompareType { Less, LessOrEqual, Equal, Greater, GreaterOrEqual };
 
   // Construtor com parâmetros para inicializar diretamente os atributos.
-  Time(int day, int month, int year, int hour, int minute, int second)
+  Time(int day, int month, int year, int hour=0, int minute=0, int second=0)
       : day(day), month(month), year(year), hour(hour), minute(minute), second(second) {}
 
   static std::optional<Time> fromString(const std::string& dateTimeString) {
@@ -36,7 +35,7 @@ class Time {
 
     return Time(d, m, y, hr, min, sec);
   }
-  
+
   // Métodos de acesso (getters) para os atributos.
   int getDay() const { return day; }
   int getMonth() const { return month; }
@@ -89,6 +88,16 @@ static bool compareTime(const Time& a, const Time& b, TimeMeasure measure, Compa
     
     return cmpType == CompareType::Equal || cmpType == CompareType::LessOrEqual || cmpType == CompareType::GreaterOrEqual;
   }
+  
+    friend bool operator!=(const Time& lhs, const Time& rhs) {
+        return !(lhs.second == rhs.second &&
+                 lhs.minute == rhs.minute &&
+                 lhs.hour == rhs.hour &&
+                 lhs.day == rhs.day &&
+                 lhs.month == rhs.month &&
+                 lhs.year == rhs.year);
+    }
 };
+
 
 #endif // TIME_H
