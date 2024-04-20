@@ -90,30 +90,30 @@ static bool compareTime(const Time& a, const Time& b, TimeMeasure measure, Compa
   }
   
     friend bool operator!=(const Time& lhs, const Time& rhs) {
-        return !(lhs.second == rhs.second &&
-                 lhs.minute == rhs.minute &&
-                 lhs.hour == rhs.hour &&
-                 lhs.day == rhs.day &&
-                 lhs.month == rhs.month &&
-                 lhs.year == rhs.year);
+        return !(lhs.getSecond() == rhs.getSecond() &&
+                 lhs.getMinute() == rhs.getMinute() &&
+                 lhs.getHour() == rhs.getHour() &&
+                 lhs.getDay() == rhs.getDay() &&
+                 lhs.getMonth() == rhs.getMonth() &&
+                 lhs.getYear() == rhs.getYear());
     }
 
     friend bool operator==(const Time& lhs, const Time& rhs) {
-        return lhs.second == rhs.second &&
-               lhs.minute == rhs.minute &&
-               lhs.hour == rhs.hour &&
-               lhs.day == rhs.day &&
-               lhs.month == rhs.month &&
-               lhs.year == rhs.year;
+        return lhs.getSecond() == rhs.getSecond() &&
+               lhs.getMinute() == rhs.getMinute() &&
+               lhs.getHour() == rhs.getHour() &&
+               lhs.getDay() == rhs.getDay() &&
+               lhs.getMonth() == rhs.getMonth() &&
+               lhs.getYear() == rhs.getYear();
     }
 
     friend bool operator<(const Time& lhs, const Time& rhs) {
-        if (lhs.year != rhs.year) return lhs.year < rhs.year;
-        if (lhs.month != rhs.month) return lhs.month < rhs.month;
-        if (lhs.day != rhs.day) return lhs.day < rhs.day;
-        if (lhs.hour != rhs.hour) return lhs.hour < rhs.hour;
-        if (lhs.minute != rhs.minute) return lhs.minute < rhs.minute;
-        return lhs.second < rhs.second;
+        if (lhs.getYear() != rhs.getYear()) return lhs.getYear() < rhs.getYear();
+        if (lhs.getMonth() != rhs.getMonth()) return lhs.getMonth() < rhs.getMonth();
+        if (lhs.getDay() != rhs.getDay()) return lhs.getDay() < rhs.getDay();
+        if (lhs.getHour() != rhs.getHour()) return lhs.getHour() < rhs.getHour();
+        if (lhs.getMinute() != rhs.getMinute()) return lhs.getMinute() < rhs.getMinute();
+        return lhs.getSecond() < rhs.getSecond();
     }
 
     friend bool operator>(const Time& lhs, const Time& rhs) {
@@ -127,7 +127,7 @@ static bool compareTime(const Time& a, const Time& b, TimeMeasure measure, Compa
     friend bool operator>=(const Time& lhs, const Time& rhs) {
         return !(lhs < rhs);
     }
-    
+
 };
 
 

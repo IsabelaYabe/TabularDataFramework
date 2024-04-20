@@ -17,7 +17,7 @@
 #include <memory>
 #include <algorithm>
 #include <map>
-/**
+
 struct RowVariantComparator {
     bool operator()(const RowVariant& a, const RowVariant& b) const {
         return visit([](const auto& av, const auto& bv) {
@@ -31,7 +31,7 @@ struct RowVariantComparator {
             }
         }, a, b);
     }
-};*/
+};
 
 #include "Row.h"
 
@@ -209,7 +209,7 @@ public:
             removeRow(*it);
         }
     }
-    /*
+    /**
     DataFrame groupBySum(const string& groupColumn) {
         if (!containsColumn(groupColumn)) {
             throw invalid_argument("Column must exist in the DataFrame.");

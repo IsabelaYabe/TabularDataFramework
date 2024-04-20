@@ -395,9 +395,9 @@ int main() {
     cout << "Realizando o inner join nos DataFrames de vendas e avaliações" << endl;
     salesDF.innerJoin(reviewsDF, "Date");
     salesDF.printDataFrame();
-    // Realizando o groupBySum
-    //auto result = dfGBS.groupBySum("Name");
-    //result.printDataFrame();
+    //Realizando o groupBySum
+    //DataFrame resultado = dfGBS.groupBySum("Name");
+    //resultado.printDataFrame();
     sep();   
     return 0;
 }
