@@ -27,7 +27,19 @@ class Row {
     private:
         unordered_map<string, RowVariant> row;
     public:
-        Row() {}
+    // Existing constructors
+    Row() {}
+    Row(const Row&) = default;
+    Row(Row&&) = default;
+
+    Row(const vector<string>& keys, const vector<RowVariant>& values) {
+        if (keys.size() != values.size()) {
+            throw invalid_argument("Number of keys must match number of values.");
+        }
+        for (size_t i = 0; i < keys.size(); ++i) {
+            row[keys[i]] = values[i];
+        }
+    }
         
         void addColRow(const string& name, const RowVariant& value) {
                 row[name] = value;

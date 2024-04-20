@@ -17,7 +17,7 @@
 #include <memory>
 #include <algorithm>
 #include <map>
-
+/*
 struct RowVariantComparator {
     bool operator()(const RowVariant& a, const RowVariant& b) const {
         return visit([](const auto& av, const auto& bv) {
@@ -31,7 +31,7 @@ struct RowVariantComparator {
             }
         }, a, b);
     }
-};
+};*/
 
 #include "Row.h"
 
@@ -209,31 +209,116 @@ public:
             removeRow(*it);
         }
     }
-    /**
-    DataFrame groupBySum(const string& groupColumn) {
+    
+    DataFrame groupByFreq(const string& groupColumn) {
         if (!containsColumn(groupColumn)) {
-            throw invalid_argument("Column must exist in the DataFrame.");
+            throw invalid_argument("Both columns must exist in the DataFrame.");
         }
 
-        vector<string> names = {groupColumn, "Count"};
-        vector<string> type = {types[groupColumn], "double"};
+        // Maps to store sums, keyed by the group column's value
+        map<RowVariant, int> sumMap;
 
-        DataFrame result(names, type);
-
-        map<RowVariant, double, RowVariantComparator> sumMap;
+        // Iterate over rows to accumulate sums
         for (const auto& row : rows) {
-            RowVariant groupValue = row->getCol(groupColumn);  // Supõe que getCol retorna RowVariant
-            sumMap[groupValue] += 1;  // Aumenta a contagem ou inicializa em 1 se não existir
-        }
+            RowVariant groupValue = row->getCol_(groupColumn);  // Corrected function name to match your usage
+            int sumValue = 1;  // This assumes we are just counting occurrences for now
 
-        // Inserir os resultados acumulados no novo DataFrame
+            if (sumMap.find(groupValue) != sumMap.end()) {
+                sumMap[groupValue] += sumValue;
+            } else {
+                sumMap[groupValue] = sumValue;
+            }
+        }
+        // Creating a new DataFrame to hold the result
+        
+        vector<string> columnNames = {groupColumn, "Sum"};
+        vector<string> columnTypes = {getTypes().at(groupColumn), "int"};
+        DataFrame result(columnNames, columnTypes);
+        // Fill the new DataFrame with the results from the sumMap
         for (const auto& [key, value] : sumMap) {
-            // Suponha que result possa inserir linhas de alguma forma
-            result.insertRow(make_shared<Row>(key, value));  // Supõe que Row tenha um construtor adequado
+            vector<RowVariant> rowData = {key, value};
+            shared_ptr<Row> newRow = make_shared<Row>(columnNames, rowData);
+            result.insertRow(newRow);  // Ensure this method correctly handles new rows
         }
 
         return result;
-    }*/
+    }
+    
+    DataFrame groupBySum(const string& groupColumn, const string& sumColumn) {
+        if (!containsColumn(groupColumn) || !containsColumn(sumColumn)) {
+            throw invalid_argument("Both columns must exist in the DataFrame.");
+        }
+
+        // Map para armazenar as somas, chaveado pelo valor da coluna de agrupamento
+        map<RowVariant, int> sumMap;
+
+        // Iterar sobre as linhas para acumular as somas
+        for (const auto& row : rows) {
+            RowVariant groupValue = row->getCol_(groupColumn);
+            int valueToAdd = std::get<int>(row->getCol_(sumColumn)); // Assumindo que a coluna é do tipo int
+
+            if (sumMap.find(groupValue) != sumMap.end()) {
+                sumMap[groupValue] += valueToAdd;
+            } else {
+                sumMap[groupValue] = valueToAdd;
+            }
+        }
+
+        // Criando um novo DataFrame para conter o resultado
+        vector<string> columnNames = {groupColumn, "Sum"};
+        vector<string> columnTypes = {getTypes().at(groupColumn), "int"};
+        DataFrame result(columnNames, columnTypes);
+
+        // Preencher o novo DataFrame com os resultados de sumMap
+        for (const auto& [key, value] : sumMap) {
+            vector<RowVariant> rowData = {key, value};
+            shared_ptr<Row> newRow = make_shared<Row>(columnNames, rowData);
+            result.insertRow(newRow);
+        }
+
+        return result;
+    }
+
+    
+    DataFrame groupByAvg(const string& groupColumn, const string& avgColumn) {
+        if (!containsColumn(groupColumn) || !containsColumn(avgColumn)) {
+            throw invalid_argument("Both columns must exist in the DataFrame.");
+        }
+
+        // Maps to store sums and counts, keyed by the group column's value
+        map<RowVariant, pair<int, int>> avgMap; // First element is sum, second is count
+
+        // Iterate over rows to accumulate sums and counts
+        for (const auto& row : rows) {
+            RowVariant groupValue = row->getCol_(groupColumn);
+            int valueToAdd = std::get<int>(row->getCol_(avgColumn)); // Assuming the column is int type
+
+
+            if (avgMap.find(groupValue) != avgMap.end()) {
+                avgMap[groupValue].first += valueToAdd;
+                avgMap[groupValue].second += 1;
+            } else {
+                avgMap[groupValue] = make_pair(valueToAdd, 1);
+            }
+        }
+
+        // Creating a new DataFrame to hold the result
+        vector<string> columnNames = {groupColumn, "Average"};
+        vector<string> columnTypes = {getTypes().at(groupColumn), "float"};
+        DataFrame result(columnNames, columnTypes);
+
+        // Fill the new DataFrame with the results from avgMap
+        for (const auto& [key, value] : avgMap) {
+            double average = static_cast<double>(value.first) / value.second;
+            vector<RowVariant> rowData = {key, average};
+            shared_ptr<Row> newRow = make_shared<Row>(columnNames, rowData);
+            result.insertRow(newRow);
+        }
+
+        return result;
+    }
+
+
     
 
 };
