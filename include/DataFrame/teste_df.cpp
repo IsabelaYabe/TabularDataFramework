@@ -420,6 +420,33 @@ int main() {
         sep();
     }
 
+string CSV = "ID do Usuário,ID do Produto,Quantidade,Data de Criação,Data do Pagamento,Data da Entrega\n"
+    "fc9cae54-a3fe-4b18-9280-9ff333d4c690,39e071d5-a92b-4193-8580-655f55b85e84,8,2024-04-06 06:58:31.721821,1982-08-25 04:05:06.455155,2018-10-23 03:53:57.993538\n"
+    "c57164cf-1f10-4f94-a4f8-77adb38bf0af,2c7d5294-7839-4eba-84dd-3a0f7199861e,4,2024-04-02 18:59:31.964363,1990-10-16 16:11:24.234017,1988-05-17 00:53:55.694957\n"
+    "0f9cc6ad-aac9-43e8-a586-2de79947a7b3,d66668b8-4581-4efb-99b1-90aa01bb9bed,10,2024-04-20 03:45:55.423445,2005-10-30 17:26:22.497857,2006-02-20 20:32:23.790986\n"
+    "ID,Nome,Imagem,Descrição,Preço\n"
+    "e4997d94-89c0-4b5a-87cb-d853613b9a89,child,https://picsum.photos/1016/883,Next structure me wait peace movie.,63355\n"
+    "98e2c27d-8290-4266-a012-e7b90fff7b2e,man,https://placekitten.com/53/529,Edge six page ever conference easy.,18858\n"
+    "6e779c19-3abd-454a-87ec-7b71a94becdd,develop,https://picsum.photos/797/311,Such happy bring garden.,28886\n";
+    cout<< "Testando splitCSVs" << endl;
+    vector<vector<string>> splitCsv = splitCsvEntries(CSV);
+    for (auto& line : splitCsv) {
+        cout << "Line:" << endl;
+        sep();
+        for (string col : line){
+            cout << col << " - ";
+        }
+        cout << endl;
+        sep();
+    }
+    cout << "Testando processCsv" << endl;
+    vector<DataFrame> dfsCsv = processCsvData(CSV);
+    for (auto& df : dfsCsv) {
+        cout << "DataFrame:" << endl;
+        sep();
+        df.printDataFrame();
+        sep();
+    }
 
     return 0;
 }

@@ -164,6 +164,131 @@ vector<DataFrame> processLogs(const string& logData) {
     return dataFrames;
 }
 
+// Função para dividir uma string por vírgula, tratando cada parte como um campo separado
+vector<string> splitCsvLine(const string& line) {
+    vector<string> result;
+    stringstream lineStream(line);
+    string cell;
+
+    while (getline(lineStream, cell, ',')) {
+        // Remove espaços em branco no início e no fim de cada campo
+        cell.erase(0, cell.find_first_not_of(" \t\n\r"));
+        cell.erase(cell.find_last_not_of(" \t\n\r") + 1);
+        result.push_back(cell);
+    }
+
+    return result;
+}
+
+// Cria um vetor de vetores de strings para cabeçalhos válidos
+vector<vector<string>> createValidHeaders() {
+    vector<vector<string>> validHeaders = {
+        splitCsvLine("ID,Nome,Sobrenome,Endereço,Data de Cadastro,Data de Aniversário"),
+        splitCsvLine("ID,Nome,Imagem,Descrição,Preço"),
+        splitCsvLine("ID do Usuário,ID do Produto,Quantidade,Data de Criação,Data do Pagamento,Data da Entrega"),
+        splitCsvLine("ID do Produto,Quantidade Disponível")
+    };
+    return validHeaders;
+}
+
+// Verifica se uma linha é um cabeçalho
+bool isHeader(const vector<string>& line, const vector<vector<string>>& validHeaders) {
+    for (const auto& header : validHeaders) {
+        if (line == header) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+vector<vector<string>> splitCsvEntries(const string& csvData) {
+    vector<vector<string>> entries;
+    istringstream csvStream(csvData);
+    string line;
+
+    while (getline(csvStream, line)) {
+        vector<string> lineEntries;
+        istringstream lineStream(line);
+        string entry;
+        bool inQuotes = false;
+        string tempEntry;
+
+        for (char c : line) {
+            if (c == '"' && (tempEntry.empty() || tempEntry.back() != '\\')) {
+                inQuotes = !inQuotes;  // Toggle the state of within quotes
+            } else if (c == ',' && !inQuotes) {
+                lineEntries.push_back(tempEntry);
+                tempEntry = "";
+            } else {
+                tempEntry += c;
+            }
+        }
+        if (!tempEntry.empty()) {
+            lineEntries.push_back(tempEntry);  // Add the last field
+        }
+        entries.push_back(lineEntries);
+    }
+
+    return entries;
+}
+
+vector<DataFrame> processCsvData(const string& csvData) {
+    vector<vector<string>> headersValid = createValidHeaders();
+    auto csvEntries = splitCsvEntries(csvData);
+    if (csvEntries.empty()) return {};
+
+    vector<vector<string>> headers;
+    csvEntries.erase(csvEntries.begin());  
+
+    map<vector<string>, DataFrame> dataFramesMap;
+    vector<string> header = csvEntries[0]; 
+    for (const auto& entry : csvEntries) {
+        if (isHeader(entry,headersValid)){
+            headers.push_back(entry);
+            header = entry;
+        }
+        vector<string> columns = header;
+        vector<string> types;  // Assume all are strings initially
+        vector<RowVariant> values;
+        if (!entry.empty() && entry.size() >=2 ){
+            for (int i = 0; i < entry.size(); i++){
+                string colValue = entry[i];
+                if (isTimeFormat(colValue)) {
+                    optional<Time> time = Time::fromString(colValue);
+                    if (time) {
+                        values.push_back(*time);
+                        types.push_back("Time");
+                    } else {
+                        cout << "Invalid time format for additional column" << endl;
+                        continue; // Skip this value
+                    }
+                } else if (isNumber(colValue)) {
+                    values.push_back(stod(colValue));
+                    types.push_back("double");
+                } else {
+                    values.push_back(colValue);
+                    types.push_back("string");
+                }
+            }
+        }
+        auto row = make_shared<Row>(columns, values);
+
+        if (dataFramesMap.find(columns) == dataFramesMap.end()) {
+            DataFrame newDf;
+            newDf.setColumns(columns);
+            newDf.setTypes(types);
+            dataFramesMap[columns] = newDf;
+        }
+        dataFramesMap[columns].insertRow(row);
+    }
+
+    vector<DataFrame> dataFrames;
+    for (auto& [key, df] : dataFramesMap) {
+        dataFrames.push_back(df);
+    }
+    return dataFrames;
+}
 
 
 #endif // UTEIS_H
