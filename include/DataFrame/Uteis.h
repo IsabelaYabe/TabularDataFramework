@@ -1,6 +1,7 @@
 #ifndef UTEIS_H
 #define UTEIS_H
 
+#include <regex>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -24,14 +25,26 @@
 using namespace std;
 
 bool isNumber(const std::string& str) {
+    // Expressão regular que verifica se a string contém letras, números e hífens
+    std::regex uuidRegex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+
+    // Verifica se a string corresponde ao padrão de um UUID
+    if (std::regex_match(str, uuidRegex)) {
+        // Se corresponder ao padrão de um UUID, a string contém letras, números e hífens
+        return false;
+    }
+
+    // Tenta converter a string para double usando um istringstream
     std::istringstream iss(str);
     double num;
     iss >> num;
-    // Verifica se a leitura do número foi bem-sucedida e se alcançou o fim da string sem falhas.
+
+    // Verifica se a conversão foi bem-sucedida e se alcançou o fim da string sem falhas
     return iss.good() || (iss.eof() && !iss.fail());
 }
 
-bool isTimeFormat(const std::string& str) {
+
+bool isTimeFormat(const string& str) {
     // Verifica o tamanho da string para os dois formatos permitidos
     if (str.size() != 19 && str.size() != 10) return false;
 
@@ -122,13 +135,8 @@ vector<DataFrame> processLogs(const string& logData) {
 
                     if (isTimeFormat(colValue)) {
                         optional<Time> time = Time::fromString(colValue);
-                        if (time) {
-                            values.push_back(*time);
-                            types.push_back("Time");
-                        } else {
-                            cout << "Invalid time format for additional column" << endl;
-                            continue; // Skip this value
-                        }
+                        values.push_back(*time);
+                        types.push_back("Time");
                     } else if (isNumber(colValue)) {
                         values.push_back(stod(colValue));
                         types.push_back("double");
@@ -170,81 +178,6 @@ vector<DataFrame> processLogs(const string& logData) {
     return dataFrames;
 }
 
-/*
-Queue<DataFrame> processLogsQ(const string& logData) {
-
-    auto logEntries = splitLogEntries(logData);
-    map<vector<string>, DataFrame> dataFramesMap;
-
-    for (const auto& entry : logEntries) {
-        vector<string> columns = {"Data de Notificação", "Tipo", "Conteúdo textual"};
-        vector<string> types = {"Time", "string", "string"};
-        vector<RowVariant> values;
-
-        if (!entry.empty() && entry.size() >= 2) {
-            optional<Time> optTime = Time::fromString(entry[0]);
-            if (optTime) {
-                values.push_back(*optTime);
-            } else {
-                cout << "Invalid time format" << endl;
-                continue; // Skip this entry
-            }
-
-            values.push_back(entry[1]); // Assuming these are valid as per types
-            values.push_back(entry[2]);
-
-            for (int i = 3; i < entry.size(); i++) {
-                auto pos = entry[i].find(':');
-                if (pos != string::npos && pos + 1 < entry[i].size()) {
-                    string colName = entry[i].substr(0, pos);
-                    string colValue = entry[i].substr(pos + 2);
-                    columns.push_back(colName);
-
-                    if (isTimeFormat(colValue)) {
-                        optional<Time> time = Time::fromString(colValue);
-                        if (time) {
-                            values.push_back(*time);
-                            types.push_back("Time");
-                        } else {
-                            cout << "Invalid time format for additional column" << endl;
-                            continue; // Skip this value
-                        }
-                    } else if (isNumber(colValue)) {
-                        values.push_back(stod(colValue));
-                        types.push_back("double");
-                    } else {
-                        values.push_back(colValue);
-                        types.push_back("string");
-                    }
-                }
-            }
-
-            if (values.size() != columns.size()) {
-                cout << "Mismatch in number of columns and values" << endl;
-                continue; // Skip this row
-            }
-            auto row = make_shared<Row>(columns, values);
-            // Aqui inserir lógica que separa os valores em diferentes DataFrames
-            // Se a chave não existir, cria um novo DataFrame
-            // Se a chave existir, insere a linha no DataFrame existente
-            // Check if the DataFrame with these columns already exists
-            if (dataFramesMap.find(columns) == dataFramesMap.end()) {
-                // Create a new DataFrame if not found
-                DataFrame newDf;
-                newDf.setColumns(columns);
-                newDf.setTypes(types);
-                dataFramesMap[columns] = newDf;
-            }
-            // Insert the row into the correct DataFrame
-            dataFramesMap[columns].insertRow(row);
-        }
-    }
-    Queue<DataFrame> dataFrames;
-    for (auto& [key, df] : dataFramesMap) {
-        dataFrames.push(df);
-    }
-    return dataFrames;
-}*/
 
 // Função para dividir uma string por vírgula, tratando cada parte como um campo separado
 vector<string> splitCsvLine(const string& line) {
@@ -331,14 +264,9 @@ DataFrame processCsvData(const string& csvData) {
                 string colValue = entry[i];
                 if (isTimeFormat(colValue)) {
                     optional<Time> time = Time::fromString(colValue);
-                    if (time) {
-                        values.push_back(*time);
-                        if(j==0){
-                            types.push_back("Time"); 
-                        }
-                    } else {
-                        cout << "Invalid time format for additional column" << endl;
-                        continue; // Skip this value
+                    values.push_back(*time);
+                    if(j==0){
+                        types.push_back("Time"); 
                     }
                 } else if (isNumber(colValue)) {
                     values.push_back(stod(colValue));
@@ -363,6 +291,24 @@ DataFrame processCsvData(const string& csvData) {
     }
 
     return newDf;
+}
+
+bool isConcatenatedDateTime(const string& input) {
+    // Regex para identificar strings no formato "YYYY-MM-DDHH:MM:SS"
+    regex pattern(R"(\d{4}-\d{2}-\d{2}\d{2}:\d{2}:\d{2})");
+
+    // Verifica se a string corresponde ao padrão
+    return regex_match(input, pattern);
+}
+
+void fixDateTimeFormat(string& dateTime) {
+    // Regex para identificar datas no formato "YYYY-MM-DDHH:MM:SS"
+    regex pattern("(\\d{4}-\\d{2}-\\d{2})(\\d{2}:\\d{2}:\\d{2})");
+
+    // Substitui a string encontrada pelo padrão com a mesma string seguida de um espaço entre a data e a hora
+    string corrected = regex_replace(dateTime, pattern, "$1 $2");
+    dateTime = corrected;
+
 }
 
 vector<map<string, string>> splitJsonEntries(const string &jsonString) {
@@ -405,7 +351,8 @@ vector<map<string, string>> splitJsonEntries(const string &jsonString) {
     return entries;
 }
 
-DataFrame processJson(const string& jsonData) {
+
+DataFrame processJson(string& jsonData) {
     auto jsonEntries = splitJsonEntries(jsonData);
     if (jsonEntries.empty()) return {};
 
@@ -416,19 +363,38 @@ DataFrame processJson(const string& jsonData) {
     // Presumimos que todas as entradas JSON têm o mesmo conjunto de chaves
     // Inicializar colunas e tipos baseado na primeira entrada
     if (!jsonEntries.empty()) {
-        for (const auto& pair : jsonEntries[0]) {
+        for (auto& pair : jsonEntries[0]) {
             columns.push_back(pair.first);
-            types.push_back("string"); // Simplificação, poderia ser ajustado conforme o tipo real dos dados
+            if(isConcatenatedDateTime(pair.second)) {
+                fixDateTimeFormat(pair.second);
+            }  // Simplificação, poderia ser ajustado conforme o tipo real dos dados
+            if (isTimeFormat(pair.second)) {
+                types.push_back("Time");
+            } else if (isNumber(pair.second)) {
+                types.push_back("double");
+            } else {
+                types.push_back("string");
+            } // Simplificação, poderia ser ajustado conforme o tipo real dos dados
         }
         newDf.setColumns(columns);
         newDf.setTypes(types);
     }
 
     // Processar cada entrada de JSON
-    for (const auto& entry : jsonEntries) {
+    for (auto& entry : jsonEntries) {
         vector<RowVariant> values;
-        for (const auto& col : columns) {
-            values.push_back(entry.at(col)); // Adicionar cada valor ao vetor de RowVariant
+        for (auto& col : columns) {
+            if(isConcatenatedDateTime(entry.at(col))) {
+                fixDateTimeFormat(entry.at(col));
+            }
+            if (isTimeFormat(entry.at(col))) {
+                optional<Time> time = Time::fromString(entry.at(col));
+                values.push_back(*time);
+            } else if (isNumber(entry.at(col))) {
+                values.push_back(entry.at(col));
+            } else {
+                values.push_back(entry.at(col));
+            } // Adicionar cada valor ao vetor de RowVariant
         }
         auto row = make_shared<Row>(columns, values);
         newDf.insertRow(row);
