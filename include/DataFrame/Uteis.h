@@ -19,6 +19,8 @@
 #include "Row.h" 
 #include "DataFrame.h"
 #include "Time.h"
+#include "../queue/queue.h"
+
 using namespace std;
 
 bool isNumber(const std::string& str) {
@@ -155,7 +157,11 @@ vector<DataFrame> processLogs(const string& logData) {
             }
             // Insert the row into the correct DataFrame
             dataFramesMap[columns].insertRow(row);
+            values.clear();
         }
+        columns.clear();
+        types.clear();
+        values.clear(); 
     }
     vector<DataFrame> dataFrames;
     for (auto& [key, df] : dataFramesMap) {
@@ -163,6 +169,82 @@ vector<DataFrame> processLogs(const string& logData) {
     }
     return dataFrames;
 }
+
+/*
+Queue<DataFrame> processLogsQ(const string& logData) {
+
+    auto logEntries = splitLogEntries(logData);
+    map<vector<string>, DataFrame> dataFramesMap;
+
+    for (const auto& entry : logEntries) {
+        vector<string> columns = {"Data de Notificação", "Tipo", "Conteúdo textual"};
+        vector<string> types = {"Time", "string", "string"};
+        vector<RowVariant> values;
+
+        if (!entry.empty() && entry.size() >= 2) {
+            optional<Time> optTime = Time::fromString(entry[0]);
+            if (optTime) {
+                values.push_back(*optTime);
+            } else {
+                cout << "Invalid time format" << endl;
+                continue; // Skip this entry
+            }
+
+            values.push_back(entry[1]); // Assuming these are valid as per types
+            values.push_back(entry[2]);
+
+            for (int i = 3; i < entry.size(); i++) {
+                auto pos = entry[i].find(':');
+                if (pos != string::npos && pos + 1 < entry[i].size()) {
+                    string colName = entry[i].substr(0, pos);
+                    string colValue = entry[i].substr(pos + 2);
+                    columns.push_back(colName);
+
+                    if (isTimeFormat(colValue)) {
+                        optional<Time> time = Time::fromString(colValue);
+                        if (time) {
+                            values.push_back(*time);
+                            types.push_back("Time");
+                        } else {
+                            cout << "Invalid time format for additional column" << endl;
+                            continue; // Skip this value
+                        }
+                    } else if (isNumber(colValue)) {
+                        values.push_back(stod(colValue));
+                        types.push_back("double");
+                    } else {
+                        values.push_back(colValue);
+                        types.push_back("string");
+                    }
+                }
+            }
+
+            if (values.size() != columns.size()) {
+                cout << "Mismatch in number of columns and values" << endl;
+                continue; // Skip this row
+            }
+            auto row = make_shared<Row>(columns, values);
+            // Aqui inserir lógica que separa os valores em diferentes DataFrames
+            // Se a chave não existir, cria um novo DataFrame
+            // Se a chave existir, insere a linha no DataFrame existente
+            // Check if the DataFrame with these columns already exists
+            if (dataFramesMap.find(columns) == dataFramesMap.end()) {
+                // Create a new DataFrame if not found
+                DataFrame newDf;
+                newDf.setColumns(columns);
+                newDf.setTypes(types);
+                dataFramesMap[columns] = newDf;
+            }
+            // Insert the row into the correct DataFrame
+            dataFramesMap[columns].insertRow(row);
+        }
+    }
+    Queue<DataFrame> dataFrames;
+    for (auto& [key, df] : dataFramesMap) {
+        dataFrames.push(df);
+    }
+    return dataFrames;
+}*/
 
 // Função para dividir uma string por vírgula, tratando cada parte como um campo separado
 vector<string> splitCsvLine(const string& line) {
@@ -233,23 +315,16 @@ vector<vector<string>> splitCsvEntries(const string& csvData) {
     return entries;
 }
 
-vector<DataFrame> processCsvData(const string& csvData) {
-    vector<vector<string>> headersValid = createValidHeaders();
+DataFrame processCsvData(const string& csvData) {
     auto csvEntries = splitCsvEntries(csvData);
     if (csvEntries.empty()) return {};
 
-    vector<vector<string>> headers;
+    vector<string> columns = csvEntries[0];
     csvEntries.erase(csvEntries.begin());  
-
-    map<vector<string>, DataFrame> dataFramesMap;
-    vector<string> header = csvEntries[0]; 
+    DataFrame newDf;
+    vector<string> types;
+    int j = 0;
     for (const auto& entry : csvEntries) {
-        if (isHeader(entry,headersValid)){
-            headers.push_back(entry);
-            header = entry;
-        }
-        vector<string> columns = header;
-        vector<string> types;  // Assume all are strings initially
         vector<RowVariant> values;
         if (!entry.empty() && entry.size() >=2 ){
             for (int i = 0; i < entry.size(); i++){
@@ -258,37 +333,108 @@ vector<DataFrame> processCsvData(const string& csvData) {
                     optional<Time> time = Time::fromString(colValue);
                     if (time) {
                         values.push_back(*time);
-                        types.push_back("Time");
+                        if(j==0){
+                            types.push_back("Time"); 
+                        }
                     } else {
                         cout << "Invalid time format for additional column" << endl;
                         continue; // Skip this value
                     }
                 } else if (isNumber(colValue)) {
                     values.push_back(stod(colValue));
-                    types.push_back("double");
+                    if(j==0){
+                        types.push_back("double"); 
+                    }                    
                 } else {
                     values.push_back(colValue);
-                    types.push_back("string");
+                    if(j==0){
+                        types.push_back("string");
+                    }   
                 }
             }
         }
         auto row = make_shared<Row>(columns, values);
-
-        if (dataFramesMap.find(columns) == dataFramesMap.end()) {
-            DataFrame newDf;
+        if(j==0){
             newDf.setColumns(columns);
             newDf.setTypes(types);
-            dataFramesMap[columns] = newDf;
+            j++;
         }
-        dataFramesMap[columns].insertRow(row);
+        newDf.insertRow(row);
     }
 
-    vector<DataFrame> dataFrames;
-    for (auto& [key, df] : dataFramesMap) {
-        dataFrames.push_back(df);
-    }
-    return dataFrames;
+    return newDf;
 }
 
+vector<map<string, string>> splitJsonEntries(const string &jsonString) {
+    vector<map<string, string>> entries;
+    istringstream jsonStream(jsonString);
+    string segment;
+
+    // Encontrar cada objeto JSON na lista
+    while (getline(jsonStream, segment, '{')) {
+        size_t endPos = segment.find('}');
+        if (endPos == string::npos) continue;
+
+        string object = segment.substr(0, endPos);
+        map<string, string> entryMap;
+        istringstream objStream(object);
+        string pair;
+
+        // Extrair cada par chave-valor
+        while (getline(objStream, pair, ',')) {
+            size_t colonPos = pair.find(':');
+            if (colonPos == string::npos) continue;
+
+            string key = pair.substr(0, colonPos);
+            string value = pair.substr(colonPos + 2, pair.size() - colonPos - 3); // Corrigido para remover as aspas
+
+            // Remover aspas e espaços desnecessários
+            key.erase(remove(key.begin(), key.end(), '"'), key.end());
+            value.erase(remove(value.begin(), value.end(), '"'), value.end());
+            key.erase(remove(key.begin(), key.end(), ' '), key.end());
+            value.erase(remove(value.begin(), value.end(), ' '), value.end());
+
+            entryMap[key] = value;
+        }
+
+        if (!entryMap.empty()) {
+            entries.push_back(entryMap);
+        }
+    }
+
+    return entries;
+}
+
+DataFrame processJson(const string& jsonData) {
+    auto jsonEntries = splitJsonEntries(jsonData);
+    if (jsonEntries.empty()) return {};
+
+    DataFrame newDf;
+    vector<string> columns;
+    vector<string> types;
+
+    // Presumimos que todas as entradas JSON têm o mesmo conjunto de chaves
+    // Inicializar colunas e tipos baseado na primeira entrada
+    if (!jsonEntries.empty()) {
+        for (const auto& pair : jsonEntries[0]) {
+            columns.push_back(pair.first);
+            types.push_back("string"); // Simplificação, poderia ser ajustado conforme o tipo real dos dados
+        }
+        newDf.setColumns(columns);
+        newDf.setTypes(types);
+    }
+
+    // Processar cada entrada de JSON
+    for (const auto& entry : jsonEntries) {
+        vector<RowVariant> values;
+        for (const auto& col : columns) {
+            values.push_back(entry.at(col)); // Adicionar cada valor ao vetor de RowVariant
+        }
+        auto row = make_shared<Row>(columns, values);
+        newDf.insertRow(row);
+    }
+
+    return newDf;
+}
 
 #endif // UTEIS_H

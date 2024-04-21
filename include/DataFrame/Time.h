@@ -53,6 +53,10 @@ private:
      * @return optional<Time> A Time object if successful, nullopt otherwise.
      */
     static std::optional<Time> fromString(const std::string& dateTimeString) {
+        if(dateTimeString.size() != 10 && dateTimeString.size() != 19)
+        {
+            return std::nullopt;
+        }
         int y, m, d, hr = 0, min = 0, sec = 0;
 
         // Verifica se é apenas a data (YYYY-MM-DD)
