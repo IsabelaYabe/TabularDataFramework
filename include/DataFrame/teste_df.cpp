@@ -13,15 +13,18 @@
 #include <typeinfo>
 #include <memory>
 #include <algorithm>
-#include "Row.h" // Make sure the path to Row.h is correctly set up
+#include "Row.h" 
 #include "DataFrame.h"
 #include "Time.h"
+#include "Uteis.h"
+
 using namespace std;
+
 void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
-    cout << "Testando Time" << endl;
+    /* cout << "Testando Time" << endl;
     cout << "Testando compareTimer com " << endl;
 
         // Example date-time string
@@ -399,6 +402,24 @@ int main() {
     cout << "Realizando o groupBySum no DataFrame de vendas" << endl;
     DataFrame resultado = dfGBS.groupBySum("Name", "Age");
     resultado.printDataFrame();
-    sep();   
+    sep();   */
+
+    ///////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+    string log = "2024-04-20 08:11:00 | auditoria | Until billion attack carry film yeah star. | User: c6117e06-9588-48e5-99ec-7651669907bf | Action: part\n"
+                      "2024-04-20 08:11:01 | depuração | Two remain catch.\n"
+                      "2024-04-20 08:11:02 | notificação de falhas | Control else however work beyond appear. | Target: since | File/Line: sell.jpeg:46 | Severity: high\n"
+                      "2024-04-20 08:11:03 | notificação de falhas | Trip somebody total article stand will. | Target: operation | File/Line: south.flac:24 | Severity: low";
+    cout<< "Testando processLogs" << endl;
+    vector<DataFrame> dfs = processLogs(log);
+    for (auto& df : dfs) {
+        cout << "DataFrame:" << endl;
+        sep();
+        df.printDataFrame();
+        sep();
+    }
+
+
     return 0;
 }
