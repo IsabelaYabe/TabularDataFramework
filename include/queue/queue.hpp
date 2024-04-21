@@ -6,7 +6,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
-#include <boost/log/trivial.hpp>
 
 template <typename T>
 class Queue {
@@ -14,7 +13,7 @@ public:
     Queue() = default;
     ~Queue() = default;
 
-
+    // Delete copy constructor and assignment operator
     Queue(const Queue& other) = delete;
     Queue& operator=(const Queue& other) = delete;
 
@@ -29,7 +28,7 @@ public:
     std::optional<T> dequeue() {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_condition.wait(lock, [this] { return !m_queue.empty(); });
-        if (m_queue.empty()) { 
+        if (m_queue.empty()) { // Double-check to handle spurious wake-ups
             return std::nullopt;
         }
         auto value = std::move(m_queue.front());
@@ -49,4 +48,4 @@ private:
     std::condition_variable m_condition;
 };
 
-#endif // SAFE_QUEUE_HPP
+#endif // QUEUE_HPP

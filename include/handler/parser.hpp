@@ -1,26 +1,33 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include "queue/queue.hpp"
-#include <boost/beast/http.hpp>
+#include <iostream>
+#include <string>
 #include <thread>
+#include <mutex>
 #include <atomic>
-#include <boost/log/trivial.hpp>
-
+#include <condition_variable>
+#include "queue/queue.hpp"
 
 class Parser {
 public:
-    explicit Parser(Queue<boost::beast::http::request<boost::beast::http::string_body>>& queue);
+    Parser(Queue<std::string>& queue, int numThreads);
+    ~Parser();
+
     void start();
     void stop();
-    static void parse_and_print(const boost::beast::http::request<boost::beast::http::string_body>& request);
 
 private:
-    Queue<boost::beast::http::request<boost::beast::http::string_body>>& m_queue;
-    std::thread m_thread;
-    std::atomic<bool> m_running;
     void consume();
+    void parse(const std::string& data);
 
+    Queue<std::string>& m_queue;
+    std::vector<std::thread> m_threads;
+    std::thread m_thread;
+    int m_numThreads;
+    std::mutex m_mutex;
+    std::condition_variable m_cond_var;
+    std::atomic<bool> m_running;
 };
 
 #endif // PARSER_HPP
