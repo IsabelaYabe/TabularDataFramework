@@ -8,6 +8,13 @@
 #include <optional>
 
 using namespace std;
+/*unordered_map<type_index, string> typeMap {
+    {type_index(typeid(int)), "int"},
+    {type_index(typeid(double)), "double"},
+    {type_index(typeid(string)), "string"},
+    {type_index(typeid(vector<int>)), "vector<int>"},
+    {type_index(typeid(Time)), "Time"}
+};*/
 /**
  * @class Time
  * @brief Class to represent and manipulate dates and times.
@@ -45,26 +52,29 @@ private:
      * @param dateTimeString String containing the date and time in the format "YYYY-MM-DD HH:MM:SS"
      * @return optional<Time> A Time object if successful, nullopt otherwise.
      */
-    static optional<Time> fromString(const std::string& dateTimeString) {
-        // Validar o tamanho mínimo da string
-        if (dateTimeString.size() < 19) return std::nullopt;
+    static std::optional<Time> fromString(const std::string& dateTimeString) {
+        int y, m, d, hr = 0, min = 0, sec = 0;
 
-        // Extração correta dos componentes da data e hora
-        std::string Y = dateTimeString.substr(0, 4);
-        std::string M = dateTimeString.substr(5, 2);
-        std::string D = dateTimeString.substr(8, 2);
-        std::string HR = dateTimeString.substr(11, 2);
-        std::string MIN = dateTimeString.substr(14, 2);
-        std::string SEC = dateTimeString.substr(17, 2);
+        // Verifica se é apenas a data (YYYY-MM-DD)
+        if (dateTimeString.size() == 10) {
+            y = std::stoi(dateTimeString.substr(0, 4));
+            m = std::stoi(dateTimeString.substr(5, 2));
+            d = std::stoi(dateTimeString.substr(8, 2));
+        }
+        // Verifica se é data e hora (YYYY-MM-DD HH:MM:SS)
+        else if (dateTimeString.size() == 19) {
+            y = std::stoi(dateTimeString.substr(0, 4));
+            m = std::stoi(dateTimeString.substr(5, 2));
+            d = std::stoi(dateTimeString.substr(8, 2));
+            hr = std::stoi(dateTimeString.substr(11, 2));
+            min = std::stoi(dateTimeString.substr(14, 2));
+            sec = std::stoi(dateTimeString.substr(17, 2));
+        } else {
+            // Se o tamanho não corresponde a nenhum formato conhecido
+            return std::nullopt;
+        }
 
         try {
-            int y = std::stoi(Y);
-            int m = std::stoi(M);
-            int d = std::stoi(D);
-            int hr = std::stoi(HR);
-            int min = std::stoi(MIN);
-            int sec = std::stoi(SEC);
-
             // Cria e retorna um objeto Time se todos os valores forem convertidos corretamente
             return Time(d, m, y, hr, min, sec);
         } catch (const std::invalid_argument& e) {
