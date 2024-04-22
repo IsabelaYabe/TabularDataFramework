@@ -1,16 +1,3 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <any>
-#include <stdexcept>
-#include <typeinfo>
-#include <ctime> 
-#include <numeric> 
-#include <functional>
-#include <utility>  
-#include <type_traits>
-#include <typeinfo>
 #include <memory>
 #include <algorithm>
 #include "Row.h" 
@@ -24,6 +11,7 @@ void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
+    
     cout << "Testando Time" << endl;
     cout << "Testando compareTimer com " << endl;
 

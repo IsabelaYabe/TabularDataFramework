@@ -1,21 +1,8 @@
 #ifndef DATAFRAME_H
 #define DATAFRAME_H
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <any>
-#include <stdexcept>
 #include <typeinfo>
-#include <ctime> 
-#include <numeric> 
-#include <functional>
-#include <utility>  
-#include <type_traits>
-#include <typeinfo>
-#include <memory>
-#include <algorithm>
+#include <typeindex>
 #include <map>
 
 #include "Row.h"
