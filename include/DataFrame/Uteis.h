@@ -73,7 +73,14 @@ bool isTimeFormat(const string& str) {
     return true;
 }
 
-// Função para dividir uma string de log em um vetor de vetores de strings
+/**
+ * Divide uma string de log em um vetor de vetores de strings. Cada vetor interno representa uma linha do log,
+ * e cada string dentro desse vetor representa um campo separado por '|'. A função também trata de remover
+ * espaços em branco extras no início e no final de cada campo.
+ *
+ * @param log A string de log completa a ser dividida.
+ * @return Um vetor de vetores de strings, onde cada vetor interno contém os campos de uma linha do log.
+ */
 vector<vector<string>> splitLogEntries(const string& log) {
     vector<vector<string>> result;
     istringstream logStream(log);
@@ -99,30 +106,6 @@ vector<vector<string>> splitLogEntries(const string& log) {
     return result;
 }
 
-
-
-/**
- * Divide uma string Log em seus campos individuais, tratando cada '|' como um delimitador.
- * Assume-se que cada '|' é seguido por um espaço em ambos os lados, o que é comum em logs formatados.
- *
- * @param line A linha log a ser dividida.
- * @return Um vetor de strings, cada uma representando um campo separado por '|' na linha original.
- */
-vector<string> splitLogLine(const string& line) {
-    vector<string> result;
-    stringstream lineStream(line);
-    string cell;
-
-    // Processa cada célula separada por '|'
-    while (getline(lineStream, cell, '|')) {
-        // Remove espaços em branco extras no início e no fim de cada campo
-        cell.erase(0, cell.find_first_not_of(" \t\n\r\f\v"));
-        cell.erase(cell.find_last_not_of(" \t\n\r\f\v") + 1);
-        result.push_back(cell);
-    }
-
-    return result;
-}
 /**
  * @brief Processa dados Log em um DataFrame, identificando os tipos de dados de cada coluna e criando linhas no DataFrame.
  *
@@ -194,42 +177,6 @@ DataFrame processLogData(const string& logData) {
 
 
 /**
- * @brief Divide uma string CSV em seus campos individuais, tratando cada vírgula como um delimitador.
- *
- * @param line A linha CSV a ser dividida.
- * @return Um vetor de strings, cada uma representando um campo separado por vírgula na linha original.
- */
-vector<string> splitCsvLine(const string& line) {
-    vector<string> result;
-    stringstream lineStream(line);
-    string cell;
-
-    while (getline(lineStream, cell, ',')) {
-        // Remove espaços em branco no início e no fim de cada campo
-        cell.erase(0, cell.find_first_not_of(" \t\n\r"));
-        cell.erase(cell.find_last_not_of(" \t\n\r") + 1);
-        result.push_back(cell);
-    }
-
-    return result;
-}
-
-/**
- * @brief Cria uma lista de vetores contendo strings que representam cabeçalhos válidos para CSVs.
- *
- * @return Um vetor de vetores de strings, cada um representando um cabeçalho CSV válido.
- */
-vector<vector<string>> createValidHeadersCSV() {
-    vector<vector<string>> validHeaders = {
-        splitCsvLine("ID,Nome,Sobrenome,Endereço,Data de Cadastro,Data de Aniversário"),
-        splitCsvLine("ID,Nome,Imagem,Descrição,Preço"),
-        splitCsvLine("ID do Usuário,ID do Produto,Quantidade,Data de Criação,Data do Pagamento,Data da Entrega"),
-        splitCsvLine("ID do Produto,Quantidade Disponível")
-    };
-    return validHeaders;
-}
-
-/**
  * @brief Verifica se uma linha representa um cabeçalho de CSV, comparando-a com uma lista de cabeçalhos válidos.
  *
  * @param line A linha a ser verificada.
@@ -251,54 +198,7 @@ bool isHeader(const vector<string>& line, const vector<vector<string>>& validHea
  * @param csvData Os dados CSV como uma string única.
  * @return Um vetor de vetores de strings, com cada vetor interno representando uma linha do CSV e seus campos.
  */
-vector<vector<string>> splitCsvEntries(const string& csvData) {
-    vector<vector<string>> entries;
-    // Stream para ler os dados CSV linha por linha
-    istringstream csvStream(csvData);
-    string line;
-
-    // Lê cada linha do dado CSV
-    while (getline(csvStream, line)) {
-        // Vetor para armazenar as entradas (campos) da linha atual
-        vector<string> lineEntries;
-        // Stream para processar cada linha individualmente
-        istringstream lineStream(line);
-        // Variáveis para auxiliar no processamento de cada campo
-        string entry;
-        // Indica se o processamento está dentro de aspas, usado para campos que contêm vírgulas
-        bool inQuotes = false;
-        // Variável temporária para construir cada campo (entry)
-        string tempEntry;
-
-        // Processa cada caractere na linha
-        for (char c : line) {
-            if (c == '"' && (tempEntry.empty() || tempEntry.back() != '\\')) {
-                inQuotes = !inQuotes;  
-            } else if (c == ',' && !inQuotes) {
-                lineEntries.push_back(tempEntry);
-                tempEntry = "";
-            } else {
-                tempEntry += c;
-            }
-        }
-        // Após processar todos os caracteres, verifica se ainda há um campo sendo construído
-        if (!tempEntry.empty()) {
-            lineEntries.push_back(tempEntry);  //Adiciona o último campo
-        }
-        // Adiciona a linha processada (com seus campos) ao vetor de entradas
-        entries.push_back(lineEntries);
-    }
-
-    return entries;
-}
-
-/**
- * @brief Divide os dados CSV em linhas e campos, levando em consideração a possibilidade de campos entre aspas que podem conter vírgulas.
- *
- * @param csvData Os dados CSV como uma string única.
- * @return Um vetor de vetores de strings, com cada vetor interno representando uma linha do CSV e seus campos.
- */
-vector<vector<string>> splitCsvEntries2(const string& csv) {
+vector<vector<string>> splitCsvEntries(const string& csv) {
     vector<vector<string>> data;
     istringstream csvStream(csv);
     string line;
