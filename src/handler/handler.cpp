@@ -11,8 +11,16 @@
 #include "../../include/DataFrame/Time.h"
 
 using namespace std;
-
-// Método para adicionar uma parte do DataFrame na fila de DataFrames de saída
+/**
+ * @brief Processa um segmento do DataFrame, adicionando-o a uma fila de saída.
+ * 
+ * Esta função é projetada para operar em uma thread separada, tratando uma parte específica do DataFrame.
+ * Ela adiciona o segmento processado a uma fila designada para posterior processamento ou saída.
+ *
+ * @param df O DataFrame completo de onde os segmentos são extraídos.
+ * @param start_index O índice inicial do segmento no DataFrame.
+ * @param end_index O índice final (exclusivo) do segmento no DataFrame.
+ */
 void BalanceHandler::ProcessChunk(DataFrame df,int start_index, int end_index) {
         // Criar um DataFrame para o pedaço do DataFrame original
         DataFrame df_chunk;
@@ -26,6 +34,12 @@ void BalanceHandler::ProcessChunk(DataFrame df,int start_index, int end_index) {
     };
 
 
+/**
+ * @brief Distribui um DataFrame em múltiplos segmentos para processamento paralelo.
+ * 
+ * A função verifica a presença de DataFrames em uma fila de entrada e, se disponível, 
+ * divide o DataFrame em partes que são processadas em paralelo usando múltiplas threads.
+ */
 void BalanceHandler::BalancerFunction() {
     Queue<DataFrame*>& q = *dataframes_in;
     // Verifica se há algum DataFrame na fila
@@ -56,7 +70,13 @@ void BalanceHandler::BalancerFunction() {
     }
 };
 
-
+/**
+ * @brief Limpa entradas de cache antigas em um DataFrame comparando os tempos de registro com o horário atual.
+ * 
+ * A função verifica a fila de entrada para DataFrames. Se um DataFrame está disponível,
+ * ele verifica cada linha para determinar se o tempo registrado é recente. Se não for,
+ * a linha é removida. O DataFrame resultante é então enfileirado para saída.
+ */
 void CleanCache::CleanCacheFunction() {
     Queue<DataFrame*>& q = *dataframes_in;
     // Verifica se há algum DataFrame na fila
@@ -95,6 +115,15 @@ void CleanCache::CleanCacheFunction() {
     }
 };
 
+/**
+ * @brief Filtra e processa DataFrames de entrada, concentrando-se em ações específicas dos usuários.
+ * 
+ * Verifica a fila para DataFrames. Se disponível, processa cada linha para filtrar por ações específicas,
+ * como cliques em produtos. O DataFrame filtrado é então enfileirado para saída, e operações adicionais
+ * de junção e agrupamento podem ser realizadas conforme necessário.
+ * 
+ * @param df_products DataFrame contendo informações de produtos para serem utilizadas no processo de junção.
+ */
 void FilterHandler::FilterFunction(DataFrame df_products) {
     Queue<DataFrame*>& q = *dataframes_in;
     // Verifica se há algum DataFrame na fila
