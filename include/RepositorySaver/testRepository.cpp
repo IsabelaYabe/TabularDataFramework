@@ -74,3 +74,6 @@ int main() {
 
     return 0;
 }
+
+// Para compilar este código, você pode usar o seguinte comando:
+// g++ -o testRepository include/RepositorySaver/testRepository.cpp src/RepositorySaver/RepositorySaver.cpp -Iinclude -lsqlite3
