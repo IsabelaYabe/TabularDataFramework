@@ -11,7 +11,7 @@ void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
-    
+    /*
     cout << "Testando Time" << endl;
     cout << "Testando compareTimer com " << endl;
 
@@ -398,22 +398,15 @@ int main() {
     cout << "Realizando o groupByFreq no DataFrame de vendas" << endl;
     DataFrame resultado2 = df11.groupByFreq("Scores");
     resultado2.printDataFrame();
-    sep();
+    sep();*/
 
     ///////////////////////////////////////
     //////////////////////////////////////
     //////////////////////////////////////
-    string log = "2024-04-20 08:11:00 | auditoria | Until billion attack carry film yeah star. | User: c6117e06-9588-48e5-99ec-7651669907bf | Action: part\n2024-04-20 08:11:01 | depuração | Two remain catch.\n2024-04-20 08:11:02 | notificação de falhas | Control else however work beyond appear. | Target: since | File/Line: sell.jpeg:46 | Severity: high\n2024-04-20 08:11:03 | notificação de falhas | Trip somebody total article stand will. | Target: operation | File/Line: south.flac:24 | Severity: low";
-    string log2 = R"(2024-04-20 08:11:00 | auditoria | Until billion attack carry film yeah star. | User: c6117e06-9588-48e5-99ec-7651669907bf | Action: part
-2024-04-20 08:11:01 | depuração | Two remain catch.
-2024-04-20 08:11:02 | notificação de falhas | Control else however work beyond appear. | Target: since | File/Line: sell.jpeg:46 | Severity: high
-2024-04-20 08:11:03 | notificação de falhas | Trip somebody total article stand will. | Target: operation | File/Line: south.flac:24 | Severity: low
-)";
-    string log2F = formatString(log2);
-    cout << "Testando formatString em log" << endl;
-    cout << log2F << endl;
+    string log = "Timestamp | Type | Message\n2024-04-22 03:04:11.472839 | comportamento do usuário | User a3d53651-1ce2-4caf-9fc9-b12b37331182 purchase impact\n2024-04-22 03:04:15.487338 | comportamento do usuário | User 988aea36-45e2-426b-893e-a905abd0671d add to cart impact\n2024-04-22 03:04:16.489786 | comportamento do usuário | User bc63ffc7-c0fe-49ee-9f2d-96fd44efb2e0 view product expert\n2024-04-22 03:04:17.491797 | comportamento do usuário | User 555a9325-4e52-483e-ace6-0ff3b02c9dfd purchase impact\n2024-04-22 03:04:24.522401 | comportamento do usuário | User c0766b0d-89ae-4918-a6ae-cf37c9544bcf purchase expert";
+    
     cout << "Testando splitLogEntries" << endl;
-    vector<vector<string>> entriesLog = splitLogEntries(log2F);
+    vector<vector<string>> entriesLog = splitLogEntries(log);
     for (const auto& entry : entriesLog) {
         cout<< "entry: " << endl;	
         for (const auto& field : entry) {
@@ -421,57 +414,33 @@ int main() {
         }
         cout << endl;
     }
-    cout<< "Testando processLogs" << endl;
-    vector<DataFrame> dfs = processLogs(log2);
-    for (auto& df : dfs) {
-        cout << "DataFrame:" << endl;
-        sep();
-        df.printDataFrame();
-        cout << "tamanho df: " << df.getColumnCount() << endl;
-        for (const auto& col : df.getColumns()) cout << col << endl;
-        sep();
-    }
+    cout<< "Testando processLogData" << endl;
+    DataFrame dfLog = processLogData(log);
+    dfLog.printDataFrame();
 
-string CSV2 = "ID do Usuário,ID do Produto,Quantidade,Data de Criação,Data do Pagamento,Data da Entrega\nfc9cae54-a3fe-4b18-9280-9ff333d4c690,39e071d5-a92b-4193-8580-655f55b85e84,8,2024-04-06 06:58:31,1982-08-25 04:05:06,2018-10-23 03:53:57\nc57164cf-1f10-4f94-a4f8-77adb38bf0af,2c7d5294-7839-4eba-84dd-3a0f7199861e,4,2024-04-02 18:59:31,1990-10-16 16:11:24,1988-05-17 00:53:55\n0f9cc6ad-aac9-43e8-a586-2de79947a7b3,d66668b8-4581-4efb-99b1-90aa01bb9bed,10,2024-04-20 03:45:55,2005-10-30 17:26:22,2006-02-20 20:32:23\n";
-string CSV = "ID,Nome,Imagem,Descrição,Preço\n"
-    "e4997d94-89c0-4b5a-87cb-d853613b9a89,child,https://picsum.photos/1016/883,Next structure me wait peace movie.,63355\n"
-    "98e2c27d-8290-4266-a012-e7b90fff7b2e,man,https://placekitten.com/53/529,Edge six page ever conference easy.,18858\n"
-    "6e779c19-3abd-454a-87ec-7b71a94becdd,develop,https://picsum.photos/797/311,Such happy bring garden.,28886\n";
-    
-    string CSVfF = R"(ID,Nome,Imagem,Descrição,Preço
-a2a81485-d5a2-4fb2-a871-f8d2d0e8c472,race,https://picsum.photos/985/936,Sound respond when director south member ball value.,83446
-c40b370f-ae90-41b1-a588-2339c7dc849f,imagine,https://placekitten.com/117/474,Media condition many sure stand land.,98994
-b7e6c398-f439-4a2d-88d7-1794622d26d2,result,https://picsum.photos/192/956,End data foreign employee product.,38523
-5f93890d-e881-4a38-a98f-5240a62003fe,mouth,https://dummyimage.com/678x553,Song study father argue wife leave.,79533
-52d862e0-a099-4f3c-85ef-02d7f3e104f1,book,https://dummyimage.com/238x700,Every environment season degree would.,41034
-9e61dcf3-8ae6-416e-9961-9263bd6f1c06,feel,https://placekitten.com/611/279,Statement citizen campaign old morning fact range girl.,53981
-9edc29b5-99b9-4d2b-a2e2-d06151341061,customer,https://dummyimage.com/551x454,Point affect huge family.,93692)";
-    string CSVF = formatString(CSVfF);
-    cout << "Testando formatString em CSV" << endl;
-    cout << CSVF << endl;
-        sep();
     sep();
-    cout << "testando splitCsvEntries" << endl;
-    vector<vector<string>> entriesCsv = splitCsvEntries(CSVfF);
-    for (const auto& entry : entriesCsv) {
-    cout<< "entry: " << endl;	
+    sep();
+    string CSV = "ID,Nome,Imagem,Descrição,Preço\ne4997d94-89c0-4b5a-87cb-d853613b9a89,child,https://picsum.photos/1016/883,Next structure me wait peace movie.,63355\n98e2c27d-8290-4266-a012-e7b90fff7b2e,man,https://placekitten.com/53/529,Edge six page ever conference easy.,18858\n6e779c19-3abd-454a-87ec-7b71a94becdd,develop,https://picsum.photos/797/311,Such happy bring garden.,28886";
+    // Processar a string CSV através da função
+    vector<vector<string>> csv = splitCsvEntries(CSV);
+
+    cout << "Testando splitCsvEntries2" << endl;
+    for (const auto& entry : csv) {
+        cout << "entry: " << endl;
         for (const auto& field : entry) {
-            cout << field << " :---:  "<< " ";
+            cout << field << ":--:" << " ";
         }
         cout << endl;
     }
+
+    sep();
     sep();
     cout << "Testando processCsv" << endl;
-    DataFrame dfsCsv = processCsvData(CSV2);
+    DataFrame dfsCsv = processCsvData(CSV);
     dfsCsv.printDataFrame();
-    for (const auto& row : dfsCsv.getRows()){
-        cout << "  --------> "; 
-        row->printRow();
-        cout << endl;
-    }
 
-sep();
-sep();
+    sep();
+    sep();
     
     string Json= R"([{"data_notificacao": "2024-04-20 08:09:14", "id_usuario": "b306f3da-265f-4ea9-9028-c2f856480ae8", "estimulo": "hotel", "componente_alvo": "every"}, {"data_notificacao": "2024-04-20 08:09:38", "id_usuario": "aadc037f-8546-47c7-aff3-720130622c94", "estimulo": "west", "componente_alvo": "region"}, {"data_notificacao": "2024-04-20 08:09:43", "id_usuario": "5b9ba138-37da-4a21-98ce-a908db6622c1", "estimulo": "board", "componente_alvo": "standard"}, {"data_notificacao": "2024-04-20 08:09:45", "id_usuario": "e26a6fbe-e6f2-4c25-b192-d9a69ec4aeff", "estimulo": "account", "componente_alvo": "charge"}, {"data_notificacao": "2024-04-20 08:09:54", "id_usuario": "1c162f17-40e8-4ee0-93ab-a26dc0aed37b", "estimulo": "our", "componente_alvo": "house"}, {"data_notificacao": "2024-04-20 08:09:57", "id_usuario": "22c3907e-8ade-4d76-9498-52b8e77a3c3a", "estimulo": "direction", "componente_alvo": "every"}, {"data_notificacao": "2024-04-20 08:10:05", "id_usuario": "d7b35625-b5e4-4b3a-bf70-dbb2196ac71c", "estimulo": "test", "componente_alvo": "white"}, {"data_notificacao": "2024-04-20 08:10:09", "id_usuario": "f04e482d-b704-4420-8747-23ea70733321", "estimulo": "guy", "componente_alvo": "enjoy"}, {"data_notificacao": "2024-04-20 08:10:12", "id_usuario": "9feaa019-702c-4942-a2a7-7c479329b99d", "estimulo": "weight", "componente_alvo": "his"}])";
     sep();
@@ -482,6 +451,5 @@ sep();
     
     sep();
     sep();
-
     return 0;
 }

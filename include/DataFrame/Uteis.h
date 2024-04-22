@@ -8,34 +8,6 @@
 
 using namespace std;
 
-/**
- * Formata uma string bruta adicionando quebras de linha explícitas após cada linha.
- *
- * @param raw A string bruta a ser formatada.
- * @return A string formatada.
- */
-string formatString(const string& raw) {
-    istringstream stream(raw);
-    string line;
-    string formatted;
-    
-    // Lê cada linha da entrada e adiciona uma quebra de linha explícita
-    while (getline(stream, line)) {
-        if (!line.empty()) {
-            formatted += line + "\\n\"\n\"";  // Adiciona cada linha com \n no final para formatação
-        }
-    }
-    
-    // Remove o último caractere extra ("\n\"")
-    if (!formatted.empty()) {
-        formatted.pop_back();  // Remove o último caractere extra (")
-        formatted.pop_back();  // Remove o último caractere extra (\n)
-        formatted.pop_back();  // Remove o último caractere extra (")
-    }
-    
-    return formatted;
-}
-
 
 /**
  * Verifica se uma string é um número.
@@ -101,19 +73,13 @@ bool isTimeFormat(const string& str) {
     return true;
 }
 
-
-/**
- * Divide entradas de log em um vetor de vetores de strings.
- *
- * @param log A string de log a ser dividida.
- * @return Um vetor de vetores de strings, onde cada vetor interno representa uma entrada de log.
- */
-vector<vector<string>> splitLogEntries(const string &log) {
-    vector<vector<string>> entries;
+// Função para dividir uma string de log em um vetor de vetores de strings
+vector<vector<string>> splitLogEntries(const string& log) {
+    vector<vector<string>> result;
     istringstream logStream(log);
     string line;
 
-    // Dividir a string em linhas
+    // Processa cada linha subsequente
     while (getline(logStream, line)) {
         vector<string> lineEntries;
         istringstream lineStream(line);
@@ -121,136 +87,109 @@ vector<vector<string>> splitLogEntries(const string &log) {
 
         // Dividir cada linha em partes usando '|'
         while (getline(lineStream, entry, '|')) {
-            // Remover espaços em branco extras no início e no final
+            // Remove espaços em branco extras no início e no final
             entry.erase(entry.find_last_not_of(" \t\n\r\f\v") + 1);
             entry.erase(0, entry.find_first_not_of(" \t\n\r\f\v"));
             lineEntries.push_back(entry);
         }
 
-        entries.push_back(lineEntries);
+        result.push_back(lineEntries);
     }
 
-    return entries;
+    return result;
 }
 
+
+
 /**
- * Divide entradas de log em um vetor de vetores de strings.
+ * Divide uma string Log em seus campos individuais, tratando cada '|' como um delimitador.
+ * Assume-se que cada '|' é seguido por um espaço em ambos os lados, o que é comum em logs formatados.
  *
- * @param log A string de log a ser dividida.
- * @return Um vetor de vetores de strings, onde cada vetor interno representa uma entrada de log.
+ * @param line A linha log a ser dividida.
+ * @return Um vetor de strings, cada uma representando um campo separado por '|' na linha original.
  */
-vector<vector<string>> splitLogEntries2(const string &log) {
-    vector<vector<string>> entries;
-    istringstream logStream(log);
-    string line;
+vector<string> splitLogLine(const string& line) {
+    vector<string> result;
+    stringstream lineStream(line);
+    string cell;
 
-    // Dividir a string em linhas
-    while (getline(logStream, line)) {
-        vector<string> lineEntries;
-        istringstream lineStream(line);
-        string entry;
-
-        // Dividir cada linha em partes usando '|'
-        while (getline(lineStream, entry, '|')) {
-            // Remover espaços em branco extras no início e no final
-            entry.erase(entry.find_last_not_of(" \t\n\r\f\v") + 1);
-            entry.erase(0, entry.find_first_not_of(" \t\n\r\f\v"));
-            lineEntries.push_back(entry);
-        }
-
-        entries.push_back(lineEntries);
+    // Processa cada célula separada por '|'
+    while (getline(lineStream, cell, '|')) {
+        // Remove espaços em branco extras no início e no fim de cada campo
+        cell.erase(0, cell.find_first_not_of(" \t\n\r\f\v"));
+        cell.erase(cell.find_last_not_of(" \t\n\r\f\v") + 1);
+        result.push_back(cell);
     }
 
-    return entries;
+    return result;
 }
-
 /**
- * Processa dados de log em DataFrames.
+ * @brief Processa dados Log em um DataFrame, identificando os tipos de dados de cada coluna e criando linhas no DataFrame.
  *
- * @param logData A string contendo os dados de log.
- * @return Um vetor de DataFrames, cada um representando um conjunto distinto de dados de log.
+ * @param logData Os dados Log como uma string única.
+ * @return Um DataFrame contendo os dados processados do Log.
  */
-vector<DataFrame> processLogs(const string& logData) {
-    // Divide os registros em entradas individuais.
-    auto logEntries = splitLogEntries2(logData);
-    map<vector<string>, DataFrame> dataFramesMap;
+DataFrame processLogData(const string& logData) {
+    auto logEntries = splitLogEntries(logData);
+    // Se não houver entradas, retorna um DataFrame vazio
+    if (logEntries.empty()) return {};
 
-    // Itera sobre cada entrada de registro.
+    // Assume que a primeira entrada contém os nomes das colunas.
+    vector<string> columns = logEntries[0];
+    
+    // Remove os nomes das colunas da lista de entradas.
+    logEntries.erase(logEntries.begin());  
+    // Cria um novo DataFrame para armazenar os dados processados.
+    DataFrame newDf;
+    vector<string> types;
+    
+    // Variável de controle para adicionar tipos apenas uma vez.
+    int j = 0;
     for (const auto& entry : logEntries) {
-        // Define as colunas padrão para os registros de log.
-        vector<string> columns = {"Data de Notificação", "Tipo", "Conteúdo textual"};
-        vector<string> types = {"Time", "string", "string"};
-        // Vetor para armazenar valores das colunas para uma linha específica.
+
+        // Vetor para armazenar os valores convertidos para o tipo correto
         vector<RowVariant> values;
-
-        if (!entry.empty()) {
-            // Tenta converter o primeiro campo para um objeto Time
-            optional<Time> optTime = Time::fromString(entry[0]);
-            if (optTime) {
-                values.push_back(*optTime);
-            } else {
-                cout << "Invalid time format" << endl;
-                continue; 
-            }
-
-            // Adiciona os próximos dois campos
-            values.push_back(entry[1]); 
-            values.push_back(entry[2]);
-
-            // Processar campos adicionais que podem ter pares chave-valor
-            for (int i = 3; i < entry.size(); i++) {
-                auto pos = entry[i].find(':');
-                if (pos != string::npos && pos + 1 < entry[i].size()) {
-                    // Extrai o nome da coluna e o valor a partir do par chave-valor
-                    string colName = entry[i].substr(0, pos);
-                    string colValue = entry[i].substr(pos + 2);
-                    // Adiciona o nome da coluna ao vetor de colunas
-                    columns.push_back(colName);
-                    // Verifica o tipo de valor e adiciona ao vetor de valores com o tipo correspondente
-                    if (isTimeFormat(colValue)) {
-                        optional<Time> time = Time::fromString(colValue);
-                        values.push_back(*time);
-                        types.push_back("Time");
-                    } else if (isNumber(colValue)) {
-                        values.push_back(stod(colValue));
-                        types.push_back("double");
-                    } else {
-                        values.push_back(colValue);
-                        types.push_back("string");
+        if (!entry.empty()){
+            // Itera sobre cada valor dentro de uma entrada.
+            for (int i = 0; i < entry.size(); i++){
+                // Armazena o valor atual para processamento.
+                string colValue = entry[i];
+                // Verifica de qual tipo é o valor.
+                if (isTimeFormat(colValue)) {
+                    optional<Time> time = Time::fromString(colValue);
+                    values.push_back(*time);
+                    if(j==0){
+                        types.push_back("Time"); 
                     }
+                } else if (isNumber(colValue)) {
+                    values.push_back(stod(colValue));
+                    if(j==0){
+                        types.push_back("double"); 
+                    }                    
+                } else {
+                    values.push_back(colValue);
+                    if(j==0){
+                        types.push_back("string");
+                    }   
                 }
             }
-            // Se o número de valores não corresponder ao número de colunas, imprime um erro e pula esta linha
-            if (values.size() != columns.size()) {
-                cout << "Mismatch in number of columns and values" << endl;
-                continue; //Pular esta linha
-            }
-            // Cria uma nova linha com as colunas e valores obtidos
-            auto row = make_shared<Row>(columns, values);
-            // Verifica se o DataFrame com essas colunas já existe
-            if (dataFramesMap.find(columns) == dataFramesMap.end()) {
-                //Cria um novo DataFrame se não for encontrado
-                DataFrame newDf;
-                newDf.setColumns(columns);
-                newDf.setTypes(types);
-                dataFramesMap[columns] = newDf;
-            }
-            //Insere a linha no DataFrame correto
-            dataFramesMap[columns].insertRow(row);
-            // Limpa os vetores para a próxima entrada
-            values.clear();
         }
-        // Limpa os vetores para a próxima entrada
-        columns.clear();
-        types.clear();
-        values.clear(); 
+        // Cria uma nova linha com os valores e a adiciona ao DataFrame
+        auto row = make_shared<Row>(columns, values);
+        // Na primeira passagem, define as colunas e os tipos no DataFrame
+        if(j==0){
+            newDf.setColumns(columns);
+            newDf.setTypes(types);
+            // Aumenta o controle para não adicionar os tipos novamente
+            j++;
+        }
+        // Insere a linha no DataFrame.
+        newDf.insertRow(row);
+        // Limpa o vetor de valores para a próxima entrada.
+        values.clear();
     }
-    // Converte o mapa de DataFrames para um vetor
-    vector<DataFrame> dataFrames;
-    for (auto& [key, df] : dataFramesMap) {
-        dataFrames.push_back(df);
-    }
-    return dataFrames;
+
+    return newDf;
 }
 
 
@@ -280,7 +219,7 @@ vector<string> splitCsvLine(const string& line) {
  *
  * @return Um vetor de vetores de strings, cada um representando um cabeçalho CSV válido.
  */
-vector<vector<string>> createValidHeaders() {
+vector<vector<string>> createValidHeadersCSV() {
     vector<vector<string>> validHeaders = {
         splitCsvLine("ID,Nome,Sobrenome,Endereço,Data de Cadastro,Data de Aniversário"),
         splitCsvLine("ID,Nome,Imagem,Descrição,Preço"),

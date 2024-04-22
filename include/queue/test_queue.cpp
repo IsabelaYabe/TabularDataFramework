@@ -1,10 +1,10 @@
-#include "Queue.h"
+#include "Queue.hpp"
 #include "../DataFrame/DataFrame.h"
 
 template<typename T>
 Queue<T>* createQueue(DataFrame df) {
     Queue<T> *queue = new Queue<T>();
-    queue->push(df); // Correção: Use -> para chamar métodos em um ponteiro
+    queue->enqueue(df); // Correção: Use -> para chamar métodos em um ponteiro
     return queue;
 }
 
@@ -13,7 +13,7 @@ int main() {
     DataFrame df;
     DataFrame df2;
     Queue<DataFrame> *myQueue = createQueue<DataFrame>(df);
-    myQueue->push(df2);
+    myQueue->enqueue(df2);
     cout<<myQueue->size()<<endl;
 
     // Lembre-se de liberar a memória alocada para o ponteiro

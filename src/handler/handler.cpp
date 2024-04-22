@@ -5,7 +5,7 @@
 #include <chrono>
 #include "math.h"
 
-#include "../../include/queue/Queue.h"
+#include "../../include/queue/Queue.hpp"
 #include "../../include/handler/handler.h"
 #include "../../include/dataframe/dataframe.h"
 #include "../../include/DataFrame/Time.h"
@@ -21,7 +21,7 @@ void BalanceHandler::ProcessChunk(DataFrame df,int start_index, int end_index) {
             df_chunk.insertRow(df.getRows()[i]);
         }
         // Adiciona a parte do DataFrame em uma das filas de saída de DataFrames
-        BalanceHandler::dataframes_out->at(0).push(&df_chunk);
+        BalanceHandler::dataframes_out->at(0).enqueue(&df_chunk);
 
     };
 
@@ -31,7 +31,7 @@ void BalanceHandler::BalancerFunction() {
     // Verifica se há algum DataFrame na fila
     if (!q.empty()) {
         // Captura o DataFrame da fila
-        DataFrame* df_ptr = q.pop(); // Captura o ponteiro para o DataFrame da fila
+        DataFrame* df_ptr = q.dnqueue(); // Captura o ponteiro para o DataFrame da fila
         DataFrame df = *df_ptr;
 
         // Divide o DataFrame em partes menores usando múltiplas threads
@@ -62,7 +62,7 @@ void CleanCache::CleanCacheFunction() {
     // Verifica se há algum DataFrame na fila
     if (!q.empty()) {
         // Captura o DataFrame da fila
-        DataFrame* df_ptr = q.pop(); // Captura o ponteiro para o DataFrame da fila
+        DataFrame* df_ptr = q.dnqueue(); // Captura o ponteiro para o DataFrame da fila
         DataFrame df = *df_ptr;
 
         // Captura o horário atual
@@ -90,7 +90,7 @@ void CleanCache::CleanCacheFunction() {
         };
 
         // Adiciona o DataFrame filtrado em uma das filas de saída de DataFrames
-        CleanCache::dataframes_out->at(0).push(&df);
+        CleanCache::dataframes_out->at(0).enqueue(&df);
 
     }
 };
@@ -100,7 +100,7 @@ void FilterHandler::FilterFunction(DataFrame df_products) {
     // Verifica se há algum DataFrame na fila
     if (!q.empty()) {
         // Captura o DataFrame da fila
-        DataFrame* df_ptr = q.pop(); // Captura o ponteiro para o DataFrame da fila
+        DataFrame* df_ptr = q.dnqueue(); // Captura o ponteiro para o DataFrame da fila
         DataFrame df = *df_ptr;
 
         // Filtra os cliques do usuário 
@@ -120,7 +120,7 @@ void FilterHandler::FilterFunction(DataFrame df_products) {
 
         }
         // Adiciona o DataFrame filtrado em uma das filas de saída de DataFrames
-        FilterHandler::dataframes_out->at(0).push(&df);
+        FilterHandler::dataframes_out->at(0).enqueue(&df);
     }
 
 };
