@@ -1,23 +1,27 @@
-#include <iostream>
-#include <boost/asio.hpp>
-#include "http/http_server.hpp"
-#include "handler/parser.hpp"
 #include "queue/queue.hpp"
+#include "utils/watchdog.hpp"
+#include "utils/file_processor.hpp"
+#include "handler/parser.hpp"
+#include "triggers/request_trigger.hpp"
+#include "http/http_server.hpp"
 
-Queue<boost::beast::http::request<boost::beast::http::string_body>> requestQueue;
-Parser parser(requestQueue);
 
 int main() {
-    try {
-        parser.start();
-        boost::asio::io_context ioc{1};
-        short port = 8080; // Substitua por argv[1] se necessário, com validação adequada
-        http_server server(ioc, port, requestQueue);
-        ioc.run();
-        parser.stop();
-    } catch (std::exception const& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return EXIT_FAILURE;
+    boost::asio::io_context ioc{1};
+    Queue<std::string> fileQueue;
+    Queue<std::string> parserQueue;
+    std::vector<std::string> dirs = {"../../mock/ContaVerde", "../../mock/DataCat"};
+    Watchdog watchdog(dirs, fileQueue);
+    FileProcessor processor(fileQueue, parserQueue);
+    Parser parser(parserQueue, 4);
+    RequestTrigger trigger(parserQueue);
+    http_server server(ioc, 8080, trigger);
+    ioc.run();
+    
+
+    for (;;) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
     }
-    return EXIT_SUCCESS;
+    parser.stop();
 }

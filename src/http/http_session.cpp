@@ -1,14 +1,8 @@
 #include "http/http_session.hpp"
-#include "handler/parser.hpp"
-#include "queue/queue.hpp"
 
+http_session::http_session(tcp::socket socket, RequestTrigger& requestTrigger)
+    : socket_(std::move(socket)), requestTrigger_(requestTrigger) {}
 
-namespace beast = boost::beast; // from <boost/beast.hpp>
-namespace net = boost::asio; // from <boost/asio.hpp>
-using tcp = net::ip::tcp; // from <boost/asio/ip/tcp.hpp>
-
-http_session::http_session(boost::asio::ip::tcp::socket socket, Queue<boost::beast::http::request<boost::beast::http::string_body>>& queue)
-    : socket_(std::move(socket)), requestQueue_(queue) {}
 
 void http_session::start() {
     do_read();
@@ -22,20 +16,23 @@ void http_session::do_read() {
         });
 }
 
+
 void http_session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     if (!ec) {
-        requestQueue_.enqueue(std::move(request_));
-        do_write();
-    } else if (ec != boost::beast::http::error::end_of_stream) {
-        std::cerr << "Error: " << ec.message() << std::endl;
+        std::string requestData = request_.body();
+        // parserQueue_.enqueue(request_.body()); // Assuming trigger handles the processing
+        requestTrigger_.trigger(requestData);
+        do_write();  // Simplified response for clarity
+    } else {
+        // Handle error, possibly logging or cleaning up resources
+        std::cerr << "Error on read: " << ec.message() << std::endl;
     }
 }
 
 
-
 void http_session::do_write() {
     auto res = std::make_shared<boost::beast::http::response<boost::beast::http::string_body>>(
-        boost::beast::http::status::ok, request_.version());
+    boost::beast::http::status::ok, request_.version());
     res->set(boost::beast::http::field::server, "Boost Beast Simplified Server");
     res->set(boost::beast::http::field::content_type, "text/plain");
     res->keep_alive(request_.keep_alive());

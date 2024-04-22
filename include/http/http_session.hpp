@@ -1,26 +1,33 @@
 #ifndef HTTP_SESSION_HPP
 #define HTTP_SESSION_HPP
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
 #include <boost/asio.hpp>
+#include <boost/beast.hpp>
 #include "queue/queue.hpp"
-#include <iostream>
+#include "triggers/request_trigger.hpp"
+
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;  
+using tcp = net::ip::tcp;
+
 class http_session : public std::enable_shared_from_this<http_session> {
 public:
-    http_session(boost::asio::ip::tcp::socket socket, Queue<boost::beast::http::request<boost::beast::http::string_body>>& queue);
-
+    // Constructor with all necessary components
+    explicit http_session(tcp::socket socket, RequestTrigger& requestTrigger);
     void start();
 
 private:
     boost::asio::ip::tcp::socket socket_;
-    boost::beast::flat_buffer buffer_;
+    boost::beast::flat_buffer buffer_; 
     boost::beast::http::request<boost::beast::http::string_body> request_;
+    RequestTrigger& requestTrigger_;
 
+    std::string body_to_string(const beast::http::request<beast::http::dynamic_body>& req);
     void do_read();
-    void on_read(boost::beast::error_code ec, std::size_t bytes_transferred);
+    void on_read(beast::error_code ec, std::size_t bytes_transferred);
+    void process_request();
     void do_write();
-    Queue<boost::beast::http::request<boost::beast::http::string_body>>& requestQueue_;
 };
 
 #endif // HTTP_SESSION_HPP
