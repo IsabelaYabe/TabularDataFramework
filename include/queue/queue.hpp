@@ -42,6 +42,10 @@ public:
         return m_queue.empty();
     }
 
+    int size(){
+        return m_queue.size();
+    };
+
 private:
     std::queue<T> m_queue;
     mutable std::mutex m_mutex;
