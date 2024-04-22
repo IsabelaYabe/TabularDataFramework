@@ -24,10 +24,10 @@ void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
-    /* cout << "Testando Time" << endl;
+    cout << "Testando Time" << endl;
     cout << "Testando compareTimer com " << endl;
 
-        // Example date-time string
+
     string dateTimeStr = "2019-04-23 03:55:45";
 
     // Convert string to Time object
@@ -55,7 +55,7 @@ int main() {
     cout<< "Testando RowMerge" << endl;
     Row row0;
     Row row00;
-
+    
     // Add columns to row1
     row0.addColRow("ID", 1);
     row0.addColRow("Name", string("John Doe"));
@@ -402,7 +402,7 @@ int main() {
     cout << "Realizando o groupBySum no DataFrame de vendas" << endl;
     DataFrame resultado = dfGBS.groupBySum("Name", "Age");
     resultado.printDataFrame();
-    sep();   */
+    sep();   
 
     ///////////////////////////////////////
     //////////////////////////////////////
