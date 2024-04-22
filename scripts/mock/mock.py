@@ -1,157 +1,153 @@
-import requests
 import os
 import pandas as pd
-from faker import Faker
-import multiprocessing  # Importando multiprocessing em vez de threading
+import random
+import multiprocessing
 import time
 import json
-import random
+import requests
 from datetime import datetime
-from pathlib import Path
+from faker import Faker
 
-
-# Configuração do Faker
 fake = Faker()
 
 def criar_diretorio(diretorio):
     if not os.path.exists(diretorio):
         os.makedirs(diretorio)
 
-# Gerador de dados para o serviço ContaVerde
 def conta_verde():
     directory = "ContaVerde"
-    
-    start_time = time.time()
-    timestamp = int(start_time)
+    criar_diretorio(f"mock/{directory}")
 
-    data_types = ["usuarios", "produtos", "estoque", "ordens"]
-    columns = {
-        "usuarios": ["ID", "Nome", "Sobrenome", "Endereço", "Data de Cadastro", "Data de Aniversário"],
-        "produtos": ["ID", "Nome", "Imagem", "Descrição", "Preço"],
-        "estoque": ["ID do Produto", "Quantidade Disponível"],
-        "ordens": ["ID do Usuário", "ID do Produto", "Quantidade", "Data de Criação", "Data do Pagamento", "Data da Entrega"]
-    }
+    usuarios = [fake.uuid4() for _ in range(10)]
+    produtos = [fake.uuid4() for _ in range(5)]
+
+    usuarios_data = [(u, fake.first_name(), fake.last_name(), fake.address().replace('\n', ', '), fake.date_this_year(), fake.date_of_birth()) for u in usuarios]
+    produtos_data = [(p, fake.word(), fake.image_url(), fake.sentence(), fake.random_number(digits=3)) for p in produtos]
+
+    pd.DataFrame(usuarios_data, columns=["ID", "Nome", "Sobrenome", "Endereço", "Data de Cadastro", "Data de Aniversário"]).to_csv(f"mock/{directory}/usuarios.csv", index=False)
+    pd.DataFrame(produtos_data, columns=["ID", "Nome", "Imagem", "Descrição", "Preço"]).to_csv(f"mock/{directory}/produtos.csv", index=False)
+
+    estoque_global = {p: 100 for p in produtos}
 
     while True:
+        produto_id = random.choice(produtos)
+        user_id = random.choice(usuarios)
+        quantidade = random.randint(1, 10)
+        estoque_global[produto_id] -= quantidade
         
-        if time.time() - start_time >= 60:
-            start_time = time.time()
-            timestamp = int(start_time)
+        ordem = pd.DataFrame([[user_id, produto_id, quantidade, datetime.now(), datetime.now(), datetime.now()]],
+                             columns=["ID do Usuário", "ID do Produto", "Quantidade", "Data de Criação", "Data do Pagamento", "Data da Entrega"])
+        ordem.to_csv(f"mock/{directory}/ordens.csv", mode='a', header=not os.path.exists(f"mock/{directory}/ordens.csv"), index=False)
+        
+        estoque = pd.DataFrame([[produto_id, max(estoque_global[produto_id], 0)]],
+                               columns=["ID do Produto", "Quantidade Disponível"])
+        estoque.to_csv(f"mock/{directory}/estoque.csv", mode='a', header=not os.path.exists(f"mock/{directory}/estoque.csv"), index=False)
 
-        data_type = random.choice(data_types)
-        criar_diretorio(f"mock/{directory}")
-        csv_file = f"mock/{directory}/{data_type}_{timestamp}.csv"
-        
-        if not Path(csv_file).exists():
-            pd.DataFrame([], columns=columns[data_type]).to_csv(csv_file, index=False)
-        
-        data = []
-        
-        switch = {
-            "usuarios": [fake.uuid4(), fake.first_name(), fake.last_name(), fake.address(), fake.date(), fake.date_of_birth()],
-            "produtos": [fake.uuid4(), fake.word(), fake.image_url(), fake.sentence(), fake.random_number(digits=5)],
-            "estoque": [fake.uuid4(), fake.random_number(digits=3)],
-            "ordens": [fake.uuid4(), fake.uuid4(), fake.random_int(min=1, max=10), fake.date_time_this_month(), fake.date_time(), fake.date_time()]
-        }
-        
-        data = switch.get(data_type, [])
-        pd.DataFrame([data], columns=columns[data_type]).to_csv(f"mock/{directory}/{data_type}_{timestamp}.csv", mode='a', header=False, index=False)
+        time.sleep(random.randint(1,3))
 
-        time.sleep(1)
+def get_products_list():
+    directory = "mock/ContaVerde"
+    try:
+        produtos_df = pd.read_csv(f"{directory}/produtos.csv")
+        return produtos_df['Nome'].tolist()
+    except FileNotFoundError:
+        print("Produto CSV não encontrado. Certifique-se de que 'conta_verde' gerou dados antes de executar 'data_cat'.")
+        return ["Laptop", "Smartphone", "Book", "Headphones", "Smartwatch"]  # default list
 
-# Gerador de dados para o serviço DataCat
-def data_cat():  
-    inicio = time.time()
-    timestamp = int(time.time())
-    diretorio = "DataCat"
-    
-    while True:  
+def data_cat():
+    directory = "DataCat"
+    criar_diretorio(f"mock/{directory}")
+
+    log_types = ["auditoria", "comportamento do usuário", "notificação de falhas", "depuração"]
+    column_headers = {
+        "auditoria": "Timestamp | Type | Message",
+        "comportamento do usuário": "Timestamp | Type | Message",
+        "notificação de falhas": "Timestamp | Type | Message",
+        "depuração": "Timestamp | Type | Message"
+    }
+    actions = ["login", "logout", "update profile", "change password"]
+    ecommerce_actions = ["view product", "add to cart", "purchase"]
+    products = get_products_list()
+
+    while True:
+        log_type = random.choice(log_types)
+        user_id = fake.uuid4()
+        action = random.choice(actions)
+        ecommerce_action = random.choice(ecommerce_actions)
+        product = random.choice(products)
         
-        if time.time() - inicio >= 60:  
-            # Salva os dados de log acumulados no último minuto
-            timestamp = int(time.time())
-            # Reseta o tempo de início para o próximo ciclo de 1 minuto
-            inicio = time.time()
+        message = {
+            "auditoria": f"{datetime.now()} | auditoria | User {user_id} performed {action}",
+            "comportamento do usuário": f"{datetime.now()} | comportamento do usuário | User {user_id} {ecommerce_action} {product}",
+            "notificação de falhas": f"{datetime.now()} | notificação de falhas | Failure in {ecommerce_action} {product} at {fake.file_name()}:{random.randint(1, 100)} severity {random.choice(['low', 'medium', 'high'])}",
+            "depuração": f"{datetime.now()} | depuração | Debug error occurred in {fake.word()} module"
+        }[log_type]
+
+        filepath = f"mock/{directory}/{log_type}.txt"
+        file_exists = os.path.exists(filepath)
+        with open(filepath, "a") as file:
+            if not file_exists:
+                file.write(column_headers[log_type] + "\n")
+            file.write(message + "\n")
         
-        # A cada segundo, adicione um novo log
-        arquivo_path = f"mock/{diretorio}/log_{timestamp}.txt"
-        
-        log_type = random.choice(["auditoria", "comportamento do usuário", "notificação de falhas", "depuração"])
-        message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {log_type} | {fake.sentence()}"
-        if log_type == "auditoria":
-            message += f" | User: {fake.uuid4()} | Action: {fake.word()}"
-        elif log_type == "comportamento do usuário":
-            message += f" | User: {fake.uuid4()} | Stimulus: {fake.word()} | Target: {fake.word()}"
-        elif log_type == "notificação de falhas":
-            message += f" | Target: {fake.word()} | File/Line: {fake.file_name()}:{fake.random_int(min=1, max=100)} | Severity: {random.choice(['low', 'medium', 'high'])}"
-        criar_diretorio("mock/" + diretorio)
-        with open(arquivo_path, "a+") as file:
-            file.write(f"{message}\n")
-        time.sleep(1)  # Espera 1 segundo antes de gerar um novo log
-
-# Gerador de dados para o serviço CadêAnalytics
-def cade_analytics():  
-    eventos_acumulados = []  
-    inicio = time.time()
-    
-    while True:  
-        if time.time() - inicio >= 60:
-            timestamp = int(time.time())
-            criar_diretorio("mock/CadeAnalytics") 
-            # Criação do arquivo simulando uma request HTTP
-            with open(f"mock/CadeAnalytics/eventos_{timestamp}.json", "w") as file:
-                # Escrevendo os headers da 'request'
-                file.write("POST /api/eventos HTTP/1.1\n")
-                file.write("Host: www.exemplo.com\n")
-                file.write("Content-Type: application/json\n")
-                file.write(f"Content-Length: {str(len(json.dumps(eventos_acumulados)))}\n")
-                file.write("Connection: close\n\n")
-                
-                # Escrevendo o corpo da 'request' com os eventos acumulados
-                json.dump(eventos_acumulados, file, indent=2)  # Formato bonito com 'indent'
-            
-            url = "http://localhost:8080"  # Substitua pela URL correta do seu servidor
-            headers = {
-                "Content-Type": "application/json"
-            }
-            data = json.dumps(eventos_acumulados)
-            
-            try:
-                response = requests.post(url, headers=headers, data=data)
-                print(f"Request enviada para o servidor. Status code: {response.status_code}")
-            
-            except requests.exceptions.RequestException as e:
-                print(f"Erro ao enviar a request para o servidor: {e}")
-            
-            eventos_acumulados = []
-            inicio = time.time()
-
-        numero_aleatorio = random.randint(0, 100)
-        print(f"Número aleatório: {numero_aleatorio}")
-        if numero_aleatorio % 7 == 0:
-            evento = {
-                "data_notificacao": str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
-                "id_usuario": fake.uuid4(),
-                "estimulo": fake.word(),
-                "componente_alvo": fake.word()
-            }
-            eventos_acumulados.append(evento)
-
         time.sleep(1)
 
 
-if __name__ == '__main__':  # É necessário proteger o ponto de entrada do script com essa verificação
-    # Criando processos
-    p1 = multiprocessing.Process(target=conta_verde)
-    p2 = multiprocessing.Process(target=data_cat)
-    p3 = multiprocessing.Process(target=cade_analytics)
+def cade_analytics():
+    directory = "CadeAnalytics"
+    criar_diretorio(f"mock/{directory}")
+    
+    produtos = get_products_list()
+    usuarios = pd.read_csv("mock/ContaVerde/usuarios.csv")['ID'].tolist()
+    acumulado_eventos = []
+    last_sent_time = time.time()
+    
+    while True:
+        if (time.time() - last_sent_time) >= 5.0:
+            if acumulado_eventos:
+                # Enviar para o servidor
+                try:
+                    response = requests.post(
+                        "http://localhost:8080",
+                        json=acumulado_eventos,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    print(f"Status Code: {response.status_code}, Response: {response.json()}")
+                except requests.RequestException as e:
+                    print(f"Failed to send data: {e}")
+            
+            # Reset dos eventos acumulados e atualização do último tempo de envio
+            acumulado_eventos = []
+            last_sent_time = time.time()
+        
+        usuario_id = random.choice(usuarios)
+        produto = random.choice(produtos)
+        eventos = [{
+            "timestamp": datetime.now().isoformat(),
+            "usuario_id": usuario_id,
+            "evento": random.choice(["visualizou", "adicionou ao carrinho", "comprou"]),
+            "produto": produto
+        }]
+        
+        acumulado_eventos.append(eventos)
 
-    # Iniciando processos
-    p1.start()
-    p2.start()
-    p3.start()
+        filepath = f"mock/{directory}/eventos_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+        with open(filepath, 'w') as f:
+            json.dump(eventos, f, indent=4)
+        
+        time.sleep(random.randint(1, 5))  # Simula intervalo para o próximo evento
 
-    # Aguardando os processos terminarem (opcional, dependendo do seu caso de uso)
-    p1.join()
-    p2.join()
-    p3.join()
+
+
+if __name__ == '__main__':
+    processo_conta_verde = multiprocessing.Process(target=conta_verde)
+    processo_data_cat = multiprocessing.Process(target=data_cat)
+    processo_cade_analytics = multiprocessing.Process(target=cade_analytics)
+    
+    processo_conta_verde.start()
+    processo_data_cat.start()
+    processo_cade_analytics.start()
+    
+    processo_conta_verde.join()
+    processo_data_cat.join()
+    processo_cade_analytics.join()

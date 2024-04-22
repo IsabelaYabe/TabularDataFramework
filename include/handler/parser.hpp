@@ -7,7 +7,10 @@
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
+#include <regex>
 #include "queue/queue.hpp"
+#include "dataframe/utils.hpp"
+#include "dataframe/dataframe.hpp"
 
 class Parser {
 public:
@@ -20,6 +23,7 @@ public:
 private:
     void consume();
     void parse(const std::string& data);
+    std::string detectFormat(const std::string& data);
 
     Queue<std::string>& m_queue;
     std::vector<std::thread> m_threads;

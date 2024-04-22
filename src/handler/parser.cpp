@@ -36,7 +36,46 @@ void Parser::consume() {
     }
 }
 
+
+std::string Parser::detectFormat(const std::string& data) {
+        for (char ch : data) {
+            switch (ch) {
+                case '{':
+                    return "json";
+                case ',':
+                    return "csv";
+                case '|':
+                    return "log";
+            }
+        }
+        return "unknown";
+    }
+
 void Parser::parse(const std::string& data) {
-    // Add parsing logic here
-    std::cout << "Processing data: " << data << std::endl;
-}
+        if (data.empty()) {
+            std::cout << "Received empty data to parse." << std::endl;
+            return;
+        }
+
+        DataFrame df;
+        //std::cout << "Processing data: " << data << std::endl;
+        
+        // Detect format of the data
+        std::string format = detectFormat(data);
+        
+        // Call the appropriate processor based on the format
+        if (format == "json") {
+            df = processJson(data);
+        } else if (format == "csv") {
+            df = processCsvData(data);
+        } //else if (format == "log") {
+            //df = processLogs(data);
+        //} 
+        else {
+            std::cout << "Unknown or unsupported data format." << std::endl;
+        }
+
+        std::cout << "Processing data: " << format << ":" << std::endl << data << std::endl;
+        df.printDataFrame();
+
+    }

@@ -5,7 +5,10 @@ add_library( app_lib
     http/http_server.cpp
     http/http_session.cpp
     triggers/request_trigger.cpp
-    
+    dataframe/dataframe.cpp
+    dataframe/row.cpp
+    dataframe/time.cpp
+    dataframe/utils.cpp
     utils/file_processor.cpp
     utils/watchdog.cpp
 )

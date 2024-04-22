@@ -33,7 +33,8 @@ void Watchdog::monitorDirectory(const std::string& directory) {
                 if (fileLastModified_.find(path) == fileLastModified_.end() || 
                     fileLastModified_[path] < last_write_time) {
                     fileLastModified_[path] = last_write_time;
-                    activeFiles[prefix] = path;
+                    // activeFiles[prefix] = path;
+                    std::cout << "Enqueuing file: " << path << std::endl;
                     queue_.enqueue(path);
                 }
             }
