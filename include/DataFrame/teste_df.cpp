@@ -411,6 +411,11 @@ int main() {
                       "2024-04-20 08:11:01 | depuração | Two remain catch.\n"
                       "2024-04-20 08:11:02 | notificação de falhas | Control else however work beyond appear. | Target: since | File/Line: sell.jpeg:46 | Severity: high\n"
                       "2024-04-20 08:11:03 | notificação de falhas | Trip somebody total article stand will. | Target: operation | File/Line: south.flac:24 | Severity: low";
+    string log2 = R"(2024-04-20 08:11:00 | auditoria | Until billion attack carry film yeah star. | User: c6117e06-9588-48e5-99ec-7651669907bf | Action: part
+2024-04-20 08:11:01 | depuração | Two remain catch.
+2024-04-20 08:11:02 | notificação de falhas | Control else however work beyond appear. | Target: since | File/Line: sell.jpeg:46 | Severity: high
+2024-04-20 08:11:03 | notificação de falhas | Trip somebody total article stand will. | Target: operation | File/Line: south.flac:24 | Severity: low
+)";
     cout << "Testando splitLogEntries" << endl;
     vector<vector<string>> entriesLog = splitLogEntries(log);
     for (const auto& entry : entriesLog) {
@@ -440,10 +445,15 @@ string CSV2 = "ID,Nome,Imagem,Descrição,Preço\n"
     "e4997d94-89c0-4b5a-87cb-d853613b9a89,child,https://picsum.photos/1016/883,Next structure me wait peace movie.,63355\n"
     "98e2c27d-8290-4266-a012-e7b90fff7b2e,man,https://placekitten.com/53/529,Edge six page ever conference easy.,18858\n"
     "6e779c19-3abd-454a-87ec-7b71a94becdd,develop,https://picsum.photos/797/311,Such happy bring garden.,28886\n";
- 
+    sep();
     cout << "Testando processCsv" << endl;
     DataFrame dfsCsv = processCsvData(CSV);
     dfsCsv.printDataFrame();
+    for (const auto& row : dfsCsv.getRows()){
+        cout << "  --------> "; 
+        row->printRow();
+        cout << endl;
+    }
 
     sep();
     sep();

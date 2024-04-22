@@ -288,6 +288,7 @@ DataFrame processCsvData(const string& csvData) {
             j++;
         }
         newDf.insertRow(row);
+        values.clear(); 
     }
 
     return newDf;
@@ -398,6 +399,7 @@ DataFrame processJson(string& jsonData) {
         }
         auto row = make_shared<Row>(columns, values);
         newDf.insertRow(row);
+        values.clear(); 
     }
 
     return newDf;
