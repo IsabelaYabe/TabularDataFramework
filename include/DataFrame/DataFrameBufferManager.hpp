@@ -6,7 +6,6 @@
 #include <memory>
 #include <mutex>
 
-
 /**
  * @class DataFrameBufferManager
  * @brief Gerencia buffers para armazenar objetos DataFrame de forma segura em ambientes multithread.

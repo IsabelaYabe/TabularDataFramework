@@ -2,17 +2,6 @@
 #define UTEIS_H
 
 #include <regex>
-
-
-
-
-
-
-
-
-
-
-
 #include "Row.h" 
 #include "DataFrame.h"
 #include "Time.h"
