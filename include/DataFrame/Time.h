@@ -2,69 +2,76 @@
 #define TIME_H
 
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <optional>
 
 using namespace std;
+
 /**
  * @class Time
- * @brief Class to represent and manipulate dates and times.
+ * @brief Classe para representar e manipular datas e horas.
  *
- * This class allows creating and manipulating date and time objects, providing
- * methods for comparison, formatted input and output. It supports common operations
- * such as time comparison and converting strings to Time objects.
+ * Esta classe permite criar e manipular objetos de data e hora, fornecendo
+ * métodos para comparação, entrada e saída formatadas. Ela suporta operações comuns
+ * como comparação de tempo e conversão de strings para objetos Time.
  */
 class Time {
 private:
-    int day;    ///< Day of the month [1-31]
-    int month;  ///< Month of the year [1-12]
-    int year;   ///< Year
-    int hour;   ///< Hour of the day [0-23]
-    int minute; ///< Minute of the hour [0-59]
-    int second; ///< Second of the minute [0-59]
+    int day;  
+    int month;  
+    int year;  
+    int hour;   
+    int minute; 
+    int second; 
 
  public:
-    enum class TimeMeasure { Year, Month, Day, Hour, Minute, Second };  ///< Enum to specify time unit for comparison
-    enum class CompareType { Less, LessOrEqual, Equal, Greater, GreaterOrEqual }; ///< Enum to specify type of comparison
+    enum class TimeMeasure { Year, Month, Day, Hour, Minute, Second };  
+    enum class CompareType { Less, LessOrEqual, Equal, Greater, GreaterOrEqual };   
 
     /**
-    * @brief Constructor that initializes a Time object with specific date and time.
-    * @param day Day of the month
-    * @param month Month
-    * @param year Year
-    * @param hour Hour (default 0)
-    * @param minute Minute (default 0)
-    * @param second Second (default 0)
+    * @brief Construtor que inicializa um objeto Time com data e hora específicas.
+    * @param day Dia do mês
+    * @param month Mês
+    * @param year Ano
+    * @param hour Hora (padrão 0)
+    * @param minute Minuto (padrão 0)
+    * @param second Segundo (padrão 0)
     */
     Time(int day, int month, int year, int hour=0, int minute=0, int second=0)
         : day(day), month(month), year(year), hour(hour), minute(minute), second(second) {} 
     /**
-     * @brief Creates a Time object from a formatted string.
-     * @param dateTimeString String containing the date and time in the format "YYYY-MM-DD HH:MM:SS"
-     * @return optional<Time> A Time object if successful, nullopt otherwise.
+     * @brief Cria um objeto Time a partir de uma string formatada.
+     * @param dateTimeString String contendo a data e hora no formato "YYYY-MM-DD HH:MM:SS"
+     * @return optional<Time> Um objeto Time se bem-sucedido, nullopt caso contrário.
      */
-    static optional<Time> fromString(const std::string& dateTimeString) {
-        // Validar o tamanho mínimo da string
-        if (dateTimeString.size() < 19) return std::nullopt;
+    static std::optional<Time> fromString(const std::string& dateTimeString) {
+        if(dateTimeString.size() != 10 && dateTimeString.size() != 19)
+        {
+            return std::nullopt;
+        }
+        int y, m, d, hr = 0, min = 0, sec = 0;
 
-        // Extração correta dos componentes da data e hora
-        std::string Y = dateTimeString.substr(0, 4);
-        std::string M = dateTimeString.substr(5, 2);
-        std::string D = dateTimeString.substr(8, 2);
-        std::string HR = dateTimeString.substr(11, 2);
-        std::string MIN = dateTimeString.substr(14, 2);
-        std::string SEC = dateTimeString.substr(17, 2);
+        // Verifica se é apenas a data (YYYY-MM-DD)
+        if (dateTimeString.size() == 10) {
+            y = std::stoi(dateTimeString.substr(0, 4));
+            m = std::stoi(dateTimeString.substr(5, 2));
+            d = std::stoi(dateTimeString.substr(8, 2));
+        }
+        // Verifica se é data e hora (YYYY-MM-DD HH:MM:SS)
+        else if (dateTimeString.size() == 19) {
+            y = std::stoi(dateTimeString.substr(0, 4));
+            m = std::stoi(dateTimeString.substr(5, 2));
+            d = std::stoi(dateTimeString.substr(8, 2));
+            hr = std::stoi(dateTimeString.substr(11, 2));
+            min = std::stoi(dateTimeString.substr(14, 2));
+            sec = std::stoi(dateTimeString.substr(17, 2));
+        } else {
+            // Se o tamanho não corresponde a nenhum formato conhecido
+            return std::nullopt;
+        }
 
         try {
-            int y = std::stoi(Y);
-            int m = std::stoi(M);
-            int d = std::stoi(D);
-            int hr = std::stoi(HR);
-            int min = std::stoi(MIN);
-            int sec = std::stoi(SEC);
-
             // Cria e retorna um objeto Time se todos os valores forem convertidos corretamente
             return Time(d, m, y, hr, min, sec);
         } catch (const std::invalid_argument& e) {
@@ -91,9 +98,10 @@ private:
     void setYear(int newYear) { year = newYear; }
     void setHour(int newHour) { hour = newHour; }
     void setMinute(int newMinute) { minute = newMinute; }
-    void setSecond(int newSecond) { second = newSecond; }   
+    void setSecond(int newSecond) { second = newSecond; } 
+
     /**
-     * @brief Prints the date and time in the format "DD-MM-YYYY HH:MM:SS".
+     * @brief Imprime a data e hora no formato "DD-MM-YYYY HH:MM:SS".
      */
     void print() const {
       cout << setfill('0') << setw(2) << day << "-"
@@ -103,13 +111,14 @@ private:
                 << setfill('0') << setw(2) << minute << ":"
                 << setfill('0') << setw(2) << second << endl;
     }
-     /**
-    * @brief Compares two Time instances according to a specified time unit and comparison type.
-    * @param a First Time instance for comparison.
-    * @param b Second Time instance for comparison.
-    * @param measure Measurement unit for comparison (e.g., Year, Month, Day).
-    * @param cmpType Type of comparison (e.g., Less, Greater).
-    * @return bool Result of the comparison as specified by the type.
+
+    /**
+    * @brief Compara duas instâncias de Time de acordo com uma unidade de tempo e tipo de comparação especificados.
+    * @param a Primeira instância de Time para comparação.
+    * @param b Segunda instância de Time para comparação.
+    * @param measure Unidade de medida para comparação (ex., Ano, Mês, Dia).
+    * @param cmpType Tipo de comparação (ex., Menor, Maior).
+    * @return bool Resultado da comparação conforme especificado pelo tipo.
     */
     static bool compareTime(const Time& a, const Time& b, TimeMeasure measure, CompareType cmpType) {
         auto compare = [&](int lhs, int rhs) -> bool {
@@ -137,7 +146,7 @@ private:
         return cmpType == CompareType::Equal || cmpType == CompareType::LessOrEqual || cmpType == CompareType::GreaterOrEqual;
     }
   
-    // Comparison operators
+    // Operadores de comparação
     friend bool operator!=(const Time& lhs, const Time& rhs) {
         return !(lhs.getSecond() == rhs.getSecond() &&
                  lhs.getMinute() == rhs.getMinute() &&

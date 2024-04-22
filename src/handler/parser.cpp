@@ -16,6 +16,12 @@ void Parser::start() {
     }
 }
 
+/**
+ * @brief Para o thread de processamento das requisições.
+ *
+ * Este método sinaliza para o thread parar de processar ao definir `m_running` como falso
+ * e junta-se ao thread se ele for juntável, garantindo que todos os recursos sejam limpos adequadamente.
+ */
 void Parser::stop() {
     m_running = false; // Signal all threads to stop
     for (auto &thread : m_threads) {
@@ -34,6 +40,7 @@ void Parser::consume() {
             std::this_thread::yield(); // Queue is empty, yield to reduce CPU usage
         }
     }
+
 }
 
 

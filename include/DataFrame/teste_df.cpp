@@ -1,30 +1,21 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <any>
-#include <stdexcept>
-#include <typeinfo>
-#include <ctime> 
-#include <numeric> 
-#include <functional>
-#include <utility>  
-#include <type_traits>
-#include <typeinfo>
 #include <memory>
 #include <algorithm>
-#include "Row.h" // Make sure the path to Row.h is correctly set up
+#include "Row.h" 
 #include "DataFrame.h"
 #include "Time.h"
+#include "Uteis.h"
+
 using namespace std;
+
 void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
+    /*
     cout << "Testando Time" << endl;
     cout << "Testando compareTimer com " << endl;
 
-        // Example date-time string
+
     string dateTimeStr = "2019-04-23 03:55:45";
 
     // Convert string to Time object
@@ -52,7 +43,7 @@ int main() {
     cout<< "Testando RowMerge" << endl;
     Row row0;
     Row row00;
-
+    
     // Add columns to row1
     row0.addColRow("ID", 1);
     row0.addColRow("Name", string("John Doe"));
@@ -262,7 +253,7 @@ int main() {
     auto row21 = make_shared<Row>();
     row21->addColRow("Name", string("Bob"));
     row21->addColRow("Age", 25);
-    row21->addColRow("Scores", vector<int>{75, 84, 79});
+    row21->addColRow("Scores", vector<int>{85, 92, 88});
     row21->addColRow("IDi", 2);
 
     auto row31 = make_shared<Row>();
@@ -399,6 +390,66 @@ int main() {
     cout << "Realizando o groupBySum no DataFrame de vendas" << endl;
     DataFrame resultado = dfGBS.groupBySum("Name", "Age");
     resultado.printDataFrame();
-    sep();   
+    sep(); 
+    cout << "Realizando o groupByAvg no DataFrame de vendas" << endl;
+    DataFrame resultado1 = dfGBS.groupByAvg("Name", "Age");
+    resultado1.printDataFrame();
+    sep();  
+    cout << "Realizando o groupByFreq no DataFrame de vendas" << endl;
+    DataFrame resultado2 = df11.groupByFreq("Scores");
+    resultado2.printDataFrame();
+    sep();*/
+
+    ///////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+    string log = "Timestamp | Type | Message\n2024-04-22 03:04:11.472839 | comportamento do usuário | User a3d53651-1ce2-4caf-9fc9-b12b37331182 purchase impact\n2024-04-22 03:04:15.487338 | comportamento do usuário | User 988aea36-45e2-426b-893e-a905abd0671d add to cart impact\n2024-04-22 03:04:16.489786 | comportamento do usuário | User bc63ffc7-c0fe-49ee-9f2d-96fd44efb2e0 view product expert\n2024-04-22 03:04:17.491797 | comportamento do usuário | User 555a9325-4e52-483e-ace6-0ff3b02c9dfd purchase impact\n2024-04-22 03:04:24.522401 | comportamento do usuário | User c0766b0d-89ae-4918-a6ae-cf37c9544bcf purchase expert";
+    
+    cout << "Testando splitLogEntries" << endl;
+    vector<vector<string>> entriesLog = splitLogEntries(log);
+    for (const auto& entry : entriesLog) {
+        cout<< "entry: " << endl;	
+        for (const auto& field : entry) {
+            cout << field << ":--:" << " ";
+        }
+        cout << endl;
+    }
+    cout<< "Testando processLogData" << endl;
+    DataFrame dfLog = processLogData(log);
+    dfLog.printDataFrame();
+
+    sep();
+    sep();
+    string CSV = "ID,Nome,Imagem,Descrição,Preço\ne4997d94-89c0-4b5a-87cb-d853613b9a89,child,https://picsum.photos/1016/883,Next structure me wait peace movie.,63355\n98e2c27d-8290-4266-a012-e7b90fff7b2e,man,https://placekitten.com/53/529,Edge six page ever conference easy.,18858\n6e779c19-3abd-454a-87ec-7b71a94becdd,develop,https://picsum.photos/797/311,Such happy bring garden.,28886";
+    // Processar a string CSV através da função
+    vector<vector<string>> csv = splitCsvEntries(CSV);
+
+    cout << "Testando splitCsvEntries2" << endl;
+    for (const auto& entry : csv) {
+        cout << "entry: " << endl;
+        for (const auto& field : entry) {
+            cout << field << ":--:" << " ";
+        }
+        cout << endl;
+    }
+
+    sep();
+    sep();
+    cout << "Testando processCsv" << endl;
+    DataFrame dfsCsv = processCsvData(CSV);
+    dfsCsv.printDataFrame();
+
+    sep();
+    sep();
+    
+    string Json= R"([{"data_notificacao": "2024-04-20 08:09:14", "id_usuario": "b306f3da-265f-4ea9-9028-c2f856480ae8", "estimulo": "hotel", "componente_alvo": "every"}, {"data_notificacao": "2024-04-20 08:09:38", "id_usuario": "aadc037f-8546-47c7-aff3-720130622c94", "estimulo": "west", "componente_alvo": "region"}, {"data_notificacao": "2024-04-20 08:09:43", "id_usuario": "5b9ba138-37da-4a21-98ce-a908db6622c1", "estimulo": "board", "componente_alvo": "standard"}, {"data_notificacao": "2024-04-20 08:09:45", "id_usuario": "e26a6fbe-e6f2-4c25-b192-d9a69ec4aeff", "estimulo": "account", "componente_alvo": "charge"}, {"data_notificacao": "2024-04-20 08:09:54", "id_usuario": "1c162f17-40e8-4ee0-93ab-a26dc0aed37b", "estimulo": "our", "componente_alvo": "house"}, {"data_notificacao": "2024-04-20 08:09:57", "id_usuario": "22c3907e-8ade-4d76-9498-52b8e77a3c3a", "estimulo": "direction", "componente_alvo": "every"}, {"data_notificacao": "2024-04-20 08:10:05", "id_usuario": "d7b35625-b5e4-4b3a-bf70-dbb2196ac71c", "estimulo": "test", "componente_alvo": "white"}, {"data_notificacao": "2024-04-20 08:10:09", "id_usuario": "f04e482d-b704-4420-8747-23ea70733321", "estimulo": "guy", "componente_alvo": "enjoy"}, {"data_notificacao": "2024-04-20 08:10:12", "id_usuario": "9feaa019-702c-4942-a2a7-7c479329b99d", "estimulo": "weight", "componente_alvo": "his"}])";
+    sep();
+    sep();
+    cout<< "Testando processJson" << endl;
+    DataFrame dfsJson = processJson(Json);
+    dfsJson.printDataFrame();
+    
+    sep();
+    sep();
     return 0;
 }

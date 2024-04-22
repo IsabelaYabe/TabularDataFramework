@@ -17,7 +17,10 @@ public:
     Parser(Queue<std::string>& queue, int numThreads);
     ~Parser();
 
-    void start();
+void start();
+    /**
+    * @brief Para o processo de consumo de requisições, sinalizando ao thread de consumo para terminar.
+    */
     void stop();
 
 private:
