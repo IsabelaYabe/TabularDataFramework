@@ -5,10 +5,10 @@
 #include <chrono>
 #include "math.h"
 
-#include "../include/queue/queue.h"
-#include "../include/handler/handler.h"
-#include "../include/dataframe/dataframe.h"
-#include "../include/DataFrame/Time.h"
+#include "../../include/queue/Queue.h"
+#include "../../include/handler/handler.h"
+#include "../../include/dataframe/dataframe.h"
+#include "../../include/DataFrame/Time.h"
 
 using namespace std;
 

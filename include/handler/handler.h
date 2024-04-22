@@ -6,7 +6,7 @@
 #include <thread>
 #include <mutex>
 #include "math.h"
-#include "../queue/queue.h"
+#include "../queue/Queue.h"
 #include "../dataframe/dataframe.h"
 
 using namespace std;

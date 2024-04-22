@@ -13,7 +13,7 @@ template <typename T>
 class Queue {
     private:
         // Fila de DataFrames 
-        queue<T> queue;
+        queue<T> queue_dataframe;
         // Semáforo para indicar se a fila está vazia
         Semaphore emptySemaphore;
         // Semáforo para indicar se a fila está cheia
@@ -28,7 +28,7 @@ class Queue {
         void push(T dataframe){
             emptySemaphore.wait();
             mtx.lock();
-            queue.push(dataframe);
+            queue_dataframe.push(dataframe);
             mtx.unlock();   
             fullSemaphore.notify();
         };
@@ -36,19 +36,19 @@ class Queue {
         T pop(){
             fullSemaphore.wait();
             mtx.lock();
-            T dataframe = queue.front();
-            queue.pop();
+            T dataframe = queue_dataframe.front();
+            queue_dataframe.pop();
             mtx.unlock();
             emptySemaphore.notify();
             return dataframe;
         };
         // Método para verificar se a fila está vazia
         bool empty(){
-            return queue.empty();
+            return queue_dataframe.empty();
         };
         // Método para obter o tamanho da fila
         int size(){
-            return queue.size();
+            return queue_dataframe.size();
         };
 };
 #endif //QUEUE_H
