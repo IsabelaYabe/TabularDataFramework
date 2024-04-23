@@ -1,9 +1,26 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <any>
+#include <stdexcept>
+#include <typeinfo>
+#include <ctime> 
+#include <numeric> 
+#include <functional>
+#include <utility>  
+#include <type_traits>
+#include <typeinfo>
 #include <memory>
 #include <algorithm>
 #include "Row.h" 
 #include "DataFrame.h"
 #include "Time.h"
 #include "Uteis.h"
+#include "../handler/handler.h" 
+#include "../../src/handler/handler.cpp" 
+
+
 
 using namespace std;
 
@@ -11,11 +28,10 @@ void sep(int n=100) {
     cout << string(n, '-') << endl;
 };
 int main() {
-    /*
     cout << "Testando Time" << endl;
     cout << "Testando compareTimer com " << endl;
 
-
+        // Example date-time string
     string dateTimeStr = "2019-04-23 03:55:45";
 
     // Convert string to Time object
@@ -43,7 +59,7 @@ int main() {
     cout<< "Testando RowMerge" << endl;
     Row row0;
     Row row00;
-    
+
     // Add columns to row1
     row0.addColRow("ID", 1);
     row0.addColRow("Name", string("John Doe"));
@@ -253,7 +269,7 @@ int main() {
     auto row21 = make_shared<Row>();
     row21->addColRow("Name", string("Bob"));
     row21->addColRow("Age", 25);
-    row21->addColRow("Scores", vector<int>{85, 92, 88});
+    row21->addColRow("Scores", vector<int>{75, 84, 79});
     row21->addColRow("IDi", 2);
 
     auto row31 = make_shared<Row>();
@@ -398,11 +414,8 @@ int main() {
     cout << "Realizando o groupByFreq no DataFrame de vendas" << endl;
     DataFrame resultado2 = df11.groupByFreq("Scores");
     resultado2.printDataFrame();
-    sep();*/
+    sep();
 
-    ///////////////////////////////////////
-    //////////////////////////////////////
-    //////////////////////////////////////
     string log = "Timestamp | Type | Message\n2024-04-22 03:04:11.472839 | comportamento do usuário | User a3d53651-1ce2-4caf-9fc9-b12b37331182 purchase impact\n2024-04-22 03:04:15.487338 | comportamento do usuário | User 988aea36-45e2-426b-893e-a905abd0671d add to cart impact\n2024-04-22 03:04:16.489786 | comportamento do usuário | User bc63ffc7-c0fe-49ee-9f2d-96fd44efb2e0 view product expert\n2024-04-22 03:04:17.491797 | comportamento do usuário | User 555a9325-4e52-483e-ace6-0ff3b02c9dfd purchase impact\n2024-04-22 03:04:24.522401 | comportamento do usuário | User c0766b0d-89ae-4918-a6ae-cf37c9544bcf purchase expert";
     
     cout << "Testando splitLogEntries" << endl;
@@ -434,7 +447,6 @@ int main() {
     }
 
     sep();
-    sep();
     cout << "Testando processCsv" << endl;
     DataFrame dfsCsv = processCsvData(CSV);
     dfsCsv.printDataFrame();
@@ -448,8 +460,81 @@ int main() {
     cout<< "Testando processJson" << endl;
     DataFrame dfsJson = processJson(Json);
     dfsJson.printDataFrame();
+
+
     
+
+    ///////////////////////////////////////
+    /*
+    cout << "Testando BalanceHandler" << endl;
+    // Inicializa uma Queue para passar os DataFrames
+    Queue<DataFrame*> input_queue;
+    // Adiciona um DataFrame à fila de entrada
+    input_queue.enqueue(&df);
+    // Fila saída
+    Queue<DataFrame*> output_queue;
+    // Inicializar um vetor de queues de saída
+    vector<Queue<DataFrame*>> output_queues;
+    output_queues.push_back(output_queue);
+    // Inicializar um BalanceHandler
+    BalanceHandler balanceHandler(&input_queue, &output_queues);
+    // Chamar a função BalancerFunction para processar os dados
+    balanceHandler.BalancerFunction();
+    cout << "DataFrames de saída:" << endl;
+    for (size_t i = 0; i < output_queues.size(); ++i) {
+        cout << "Fila " << i << ":" << endl;
+        while (!output_queues[i].empty()) {
+            DataFrame* df_ptr = *output_queues[i].dequeue();
+            df_ptr->printDataFrame();
+        }
+    }
+
     sep();
+
+    cout << "Testando CleanCache" << endl;
+    // Inicializa uma Queue para passar os DataFrames
+    Queue<DataFrame*> input_queueCC;
+    // Adiciona um DataFrame à fila de entrada
+    input_queueCC.enqueue(&df);
+    // Inicializar um vetor de queues de saída
+    vector<Queue<DataFrame*>> output_queuesCC;
+    // Inicializar um CleanCache
+    CleanCache cleanCache(&input_queueCC, &output_queuesCC);
+    // Chamar a função CleanCacheFunction para processar os dados
+    cleanCache.CleanCacheFunction();
+    // Imprimir o dataframe de saída
+    cout << "DataFrames de saída:" << endl;
+    while (!output_queuesCC[0].empty()) {
+        DataFrame* df_ptr = *output_queuesCC[0].dequeue();
+        df_ptr->printDataFrame();
+    }
+
     sep();
+
+    cout << "Testando FilterHandler" << endl;
+    
+    // Inicializa uma Queue para passar os DataFrames
+    Queue<DataFrame*> input_queueFH;
+    // Adiciona um DataFrame à fila de entrada
+    input_queueFH.enqueue(&df);
+    // Inicializar uma fila de saída]
+    Queue<DataFrame*> output_queueFH;
+    // Inicializar um vetor de queues de saída
+    vector<Queue<DataFrame*>> output_queuesFH;
+    // Adiciona a fila de saída ao vetor de filas de saída
+    output_queuesFH.push_back(output_queueFH);
+    // Inicializar um FilterHandler
+    FilterHandler filterHandler(&input_queueCC, &output_queuesFH);
+    // Chamar a função FilterFunction para processar os dados
+    filterHandler.FilterFunction(df);
+    // Imprimir o dataframe de saída
+    cout << "DataFrames de saída:" << endl;
+    while (!output_queuesFH[0].empty()) {
+        DataFrame* df_ptr = *output_queuesFH[0].dequeue();
+        df_ptr->printDataFrame();
+    }
+    */
+
+
     return 0;
 }

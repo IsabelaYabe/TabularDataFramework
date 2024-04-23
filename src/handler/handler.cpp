@@ -45,7 +45,7 @@ void BalanceHandler::BalancerFunction() {
     // Verifica se há algum DataFrame na fila
     if (!q.empty()) {
         // Captura o DataFrame da fila
-        DataFrame* df_ptr = q.dnqueue(); // Captura o ponteiro para o DataFrame da fila
+        DataFrame* df_ptr = *q.dequeue(); // Captura o ponteiro para o DataFrame da fila
         DataFrame df = *df_ptr;
 
         // Divide o DataFrame em partes menores usando múltiplas threads
@@ -82,7 +82,7 @@ void CleanCache::CleanCacheFunction() {
     // Verifica se há algum DataFrame na fila
     if (!q.empty()) {
         // Captura o DataFrame da fila
-        DataFrame* df_ptr = q.dnqueue(); // Captura o ponteiro para o DataFrame da fila
+        DataFrame* df_ptr = *q.dequeue(); // Captura o ponteiro para o DataFrame da fila
         DataFrame df = *df_ptr;
 
         // Captura o horário atual
@@ -129,7 +129,7 @@ void FilterHandler::FilterFunction(DataFrame df_products) {
     // Verifica se há algum DataFrame na fila
     if (!q.empty()) {
         // Captura o DataFrame da fila
-        DataFrame* df_ptr = q.dnqueue(); // Captura o ponteiro para o DataFrame da fila
+        DataFrame* df_ptr = *q.dequeue(); // Captura o ponteiro para o DataFrame da fila
         DataFrame df = *df_ptr;
 
         // Filtra os cliques do usuário 
